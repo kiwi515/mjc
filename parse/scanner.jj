@@ -1,0 +1,745 @@
+/*
+ * Author:  Trevor Schiff, tschiff2020@my.fit.edu
+ * Course:  CSE 4251, Section 01, Spring 2023
+ * Project: MiniJava Compiler Project
+ * Charset: US-ASCII
+ */
+
+/*******************************
+ * 
+ * 
+ * 
+ *      Parser declaration
+ * 
+ * 
+ *
+ *******************************/
+
+PARSER_BEGIN(MiniJavaParser)
+    // Place in parser package
+    package parse.javacc;
+    
+    // Import AST types from support.jar
+    import syntax.*;
+
+    // Import error log classes
+    import main.Logger;
+    
+    // Import Java types
+    import java.util.List;
+    import java.util.ArrayList;
+
+    // Public visibility
+    public class MiniJavaParser {
+        /**
+         * @brief Add lexer error to compiler log
+         */
+        public static void lexerError(final TokenMgrError e) {
+            Logger.addLexerError(e);
+        }
+
+        /**
+         * @brief Add parser error to compiler log
+         */
+        public static void parserError(final ParseException e) {
+            Logger.addParserError(e);
+        }
+    }
+PARSER_END(MiniJavaParser)
+
+/*******************************
+ * 
+ * 
+ * 
+ *   Parser token declarations
+ * 
+ * 
+ *
+ *******************************/
+
+/**
+ * MiniJava keywords
+ */
+TOKEN : {
+    < K_BOOLEAN: "boolean" >
+    | < K_CLASS: "class" >
+    | < K_ELSE: "else" >
+    | < K_EXTENDS: "extends" >
+    | < K_FALSE: "false" >
+    | < K_IF: "if" >
+    | < K_INT: "int" >
+    | < K_LENGTH: "length" >
+    | < K_MAIN: "main" >
+    | < K_NEW: "new" >
+    | < K_PUBLIC: "public" >
+    | < K_RECORD: "record" >
+    | < K_RETURN: "return" >
+    | < K_STATIC: "static" >
+    | < K_STRING: "String" >
+    | < K_PRINTLN: "System.out.println" >
+    | < K_THIS: "this" >
+    | < K_TRUE: "true" >
+    | < K_VOID: "void" >
+    | < K_WHILE: "while" >
+}
+
+/**
+ * MiniJava main tokens
+ * 
+ * From EBNF grammar:
+ * - Identifier is one or more letters, digits, and underscores, starting with a letter
+ * - IntegerLiteral is one or more decimal digits
+ * - EOF a distinguished token returned by the scanner at end-of-file
+*/
+TOKEN : {
+    < #LETTER: ["a"-"z"] | ["A"-"Z"] >
+    | < #DIGIT: ["0"-"9"] >
+    | < #UNDERSCORE: "_" >
+    | < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|<UNDERSCORE>)* >
+    | < INTEGERLITERAL: (<DIGIT>)+ >
+}
+
+/**
+ * MiniJava tokens for lexer to skip
+ */
+SKIP : {
+    // Single-line comment
+    <"//" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")>
+    // Multi-line comment (Does not nest in Java)
+    | <"/*" (~["*"])* "*" (~["/"])* "/">
+    // White-space
+    | "\t"
+    | "\n"
+    | "\f"
+    | "\r"
+    | " "
+}
+
+/*******************************
+ * 
+ * 
+ * 
+ *     Common rules for AST
+ * 
+ * 
+ *
+ *******************************/
+
+// syntax.Identifier
+Identifier Identifier() : {
+    Token t;
+}
+{
+    t = <IDENTIFIER>
+    { return new Identifier(t.beginLine, t.beginColumn, t.image); }
+}
+
+// syntax.FieldDecl
+FieldDecl FieldDecl() : {
+    Type t;
+    Identifier id;
+}
+{
+    t = Type() id = Identifier() ";"
+    { return new FieldDecl(t, id); }
+}
+
+// syntax.LocalDecl
+LocalDecl LocalDecl() : {
+    Type t;
+    Identifier id;
+}
+{
+    t = Type() id = Identifier() ";"
+    { return new LocalDecl(t, id); }
+}
+
+// syntax.FormalDecl
+FormalDecl FormalDecl() : {
+    Type t;
+    Identifier id;
+}
+{
+    t = Type() id = Identifier()
+    { return new FormalDecl(t, id); }
+}
+
+/*******************************
+ * 
+ * 
+ * 
+ *    Utility rules for AST
+ * 
+ * 
+ *
+ *******************************/
+
+// Expression list
+List<Expression> ExpressionList() : {
+    Expression e;
+    List<Expression> el;
+}
+{
+    { el = new ArrayList<Expression>(); }
+    (
+        e = Expression()
+        { el.add(e); }
+
+        (
+            "," e = Expression()
+            { el.add(e); }
+        )*
+    )?
+    { return el; }
+}
+
+// Field declaration list
+List<FieldDecl> FieldDeclList() : {
+    FieldDecl f;
+    List<FieldDecl> fl;
+}
+{
+    { fl = new ArrayList<FieldDecl>(); }
+    (
+        f = FieldDecl()
+        { fl.add(f); }
+    )*
+    { return fl; }
+}
+
+// Formal declaration list
+List<LocalDecl> LocalDeclList() : {
+    LocalDecl l;
+    List<LocalDecl> ll;
+}
+{
+    { ll = new ArrayList<LocalDecl>(); }
+    (
+        LOOKAHEAD(2) l = LocalDecl()
+        { ll.add(l); }
+    )*
+    { return ll; }
+}
+
+// Formal declaration list
+List<FormalDecl> FormalDeclList() : {
+    FormalDecl f;
+    List<FormalDecl> fl;
+}
+{
+    { fl = new ArrayList<FormalDecl>(); }
+    (
+        f = FormalDecl()
+        { fl.add(f); }
+
+        (
+            "," f = FormalDecl()
+            { fl.add(f); }
+        )*
+    )*
+    { return fl; }
+}
+
+// Method declaration list
+List<MethodDecl> MethodDeclList() : {
+    MethodDecl m;
+    List<MethodDecl> ml;
+}
+{
+    { ml = new ArrayList<MethodDecl>(); }
+    (
+        m = MethodDecl()
+        { ml.add(m); }
+    )*
+    { return ml; }
+}
+
+// Statement list
+List<Statement> StatementList() : {
+    Statement s;
+    List<Statement> sl;
+}
+{
+    { sl = new ArrayList<Statement>(); }
+    (
+        s = Statement()
+        { sl.add(s); }
+    )*
+    { return sl; }
+}
+
+/*******************************
+ * 
+ * 
+ * 
+ *         Main rules
+ * 
+ * 
+ *
+ *******************************/
+
+/*******************************
+ *            Goal
+ *******************************/
+
+Program Goal() : {
+    MainClass m;
+    ClassDecl c;
+    List<ClassDecl> cl;
+}
+{
+    { cl = new ArrayList<ClassDecl>(); }
+    
+    try {
+        m = MainClass()
+        (
+            c = ClassDeclaration()
+            { cl.add(c); }
+        )*
+        <EOF>
+        { return new Program(m, cl); }
+    }
+    catch (TokenMgrError e) {
+        lexerError(e);
+    }
+    catch (ParseException e) {
+        parserError(e);
+    }
+
+    { return null; }
+}
+
+/*******************************
+ *          MainClass
+ *******************************/
+
+MainClass MainClass() : {
+    Token t;
+    Identifier id_cls, id_args;
+    Statement s;
+}
+{
+    t = <K_CLASS> id_cls = Identifier() "{"
+        <K_PUBLIC> <K_STATIC> <K_VOID> <K_MAIN> "(" <K_STRING> "[" "]" id_args = Identifier() ")" "{"
+            s = Statement()
+        "}"
+    "}"
+
+    { return new MainClass(t.beginLine, t.beginColumn, id_cls, id_args, s); }
+}
+
+/*******************************
+ *       ClassDeclaration
+ *******************************/
+
+// syntax.SimpleClassDecl
+SimpleClassDecl SimpleClassDecl() : {
+    Identifier id;
+    List<FieldDecl> fl;
+    List<MethodDecl> ml;
+}
+{
+    (<K_CLASS> id = Identifier() "{"
+            fl = FieldDeclList() ml = MethodDeclList()
+    "}")
+    { return new SimpleClassDecl(id, fl, ml); }
+}
+
+// syntax.ExtendingClassDecl
+ExtendingClassDecl ExtendingClassDecl() : {
+    Identifier id_derived, id_base;
+    List<FieldDecl> fl;
+    List<MethodDecl> ml;
+}
+{
+    (<K_CLASS> id_derived = Identifier() <K_EXTENDS> id_base = Identifier() "{"
+        fl = FieldDeclList() ml = MethodDeclList()
+    "}")
+    { return new ExtendingClassDecl(id_derived, id_base, fl, ml); }
+}
+
+// Utility, RecordClassDecl is not a real AST structure
+SimpleClassDecl RecordClassDecl() : {
+    Identifier id;
+    List<FormalDecl> frl;
+    List<FieldDecl> fdl;
+}
+{
+    <K_RECORD> id = Identifier() "(" frl = FormalDeclList() ")" "{" "}"
+
+    {
+        fdl = new ArrayList<FieldDecl>();
+
+        // Build record class definition
+        for (FormalDecl fr : frl) {
+            // Convert formal declaration into class member
+            FieldDecl fd = new FieldDecl(fr.t, fr.i);
+            fdl.add(fd);
+        }
+
+        // TODO: Generate accessor methods?
+        return new SimpleClassDecl(id, fdl, new ArrayList<MethodDecl>());
+    }
+}
+
+// Syntax.ClassDecl
+ClassDecl ClassDeclaration() : {
+    ClassDecl cls;
+    List<FormalDecl> fl;
+}
+{
+    (
+        LOOKAHEAD(3) cls = SimpleClassDecl()
+        | cls = ExtendingClassDecl()
+        | cls = RecordClassDecl()
+    )
+
+    { return cls; }
+}
+
+/*******************************
+ *          MethodDecl
+ *******************************/
+
+MethodDecl MethodDecl() : {
+    Type t_ret;
+    Identifier id;
+    List<FormalDecl> args;
+    List<LocalDecl> locals;
+    List<Statement> sl;
+    Expression e_ret;
+}
+{
+    <K_PUBLIC> t_ret = Type() id = Identifier() "(" args = FormalDeclList() ")" "{"
+        locals = LocalDeclList() sl = StatementList()
+        <K_RETURN> e_ret = Expression() ";"
+    "}"
+    { return new MethodDecl(t_ret, id, args, locals, sl, e_ret); }
+}
+
+/*******************************
+ *            Type
+ *******************************/
+
+// syntax.Type.IntegerType
+IntegerType IntegerType() : {} {
+    <K_INT>
+    { return Type.THE_INTEGER_TYPE; }
+}
+
+// syntax.Type.BooleanType
+BooleanType BooleanType() : {} {
+    <K_BOOLEAN>
+    { return Type.THE_BOOLEAN_TYPE; }
+}
+
+// syntax.Type.IntArrayType
+IntArrayType IntArrayType() : {} {
+    <K_INT> "[" "]"
+    { return Type.THE_INT_ARRAY_TYPE; }
+}
+
+// syntax.Type.IdentifierType
+IdentifierType IdentifierType() : {
+    Identifier id;
+}
+{
+    id = Identifier()
+    { return new IdentifierType(id.lineNumber, id.columnNumber, id.s); }
+}
+
+Type Type() : {
+    Type t;
+}
+{
+    (
+        LOOKAHEAD(2) t = IntArrayType()
+        | t = BooleanType()
+        | t = IntegerType()
+        | t = IdentifierType()
+    )
+
+    { return t; }
+}
+
+/*******************************
+ *          Statement
+ *******************************/
+
+// syntax.Statement.Block
+Block Block() : {
+    List<Statement> sl;
+}
+{
+    "{" sl = StatementList() "}"
+    { return new Block(sl); }
+}
+
+// syntax.Statement.If
+If If() : {
+    Token t;
+    Expression e;
+    Statement s1, s2;
+}
+{
+    t = <K_IF> "(" e = Expression() ")" s1 = Statement() <K_ELSE> s2 = Statement()
+    { return new If(t.beginLine, t.beginColumn, e, s1, s2); }
+}
+
+// syntax.Statement.While
+While While() : {
+    Token t;
+    Expression e;
+    Statement s;
+}
+{
+    t = <K_WHILE> "(" e = Expression() ")" s = Statement()
+    { return new While(t.beginLine, t.beginColumn, e, s); }
+}
+
+// syntax.Statement.Print
+Print Print() : {
+    Token t;
+    Expression e;
+}
+{
+    t = <K_PRINTLN> "(" e = Expression() ")" ";"
+    { return new Print(t.beginLine, t.beginColumn, e); }
+}
+
+// syntax.Statement.Assign
+Assign Assign() : {
+    Identifier id;
+    Expression e;
+}
+{
+    id = Identifier() "=" e = Expression() ";"
+    { return new Assign(id.lineNumber, id.columnNumber, id, e); }
+}
+
+// syntax.Statement.ArrayAssign
+ArrayAssign ArrayAssign() : {
+    Identifier id_name;
+    Expression e_idx, e_val;
+}
+{
+    id_name = Identifier() "[" e_idx = Expression() "]" "=" e_val = Expression() ";"
+    { return new ArrayAssign(id_name.lineNumber, id_name.columnNumber, id_name, e_idx, e_val); }
+}
+
+// syntax.Statement
+Statement Statement() : {
+    Statement s;
+} 
+{
+    (
+        s = Block()
+        | s = If()
+        | s = While()
+        | s = Print()
+        | LOOKAHEAD(2) s = Assign()
+        | s = ArrayAssign()
+    )
+
+    { return s; }
+}
+
+/*******************************
+ *         Expression
+ *******************************/
+
+/**
+ * For left-factoring.
+ */
+Expression CommonExpression() : {
+    Expression e;
+}
+{
+    (
+        LOOKAHEAD(2) e = NewArray()
+        | e = NewObject()
+        | e = Not()
+        | e = IntegerLiteral()
+        | e = True()
+        | e = False()
+        | e = IdentifierExp()
+        | e = This()
+        | "(" e = Expression() ")"
+    )
+
+    { return e; }
+}
+
+// syntax.Expression.And
+And And() : {
+    Expression lhs, rhs;
+}
+{
+    lhs = CommonExpression() "&&" rhs = Expression()
+    { return new And(lhs.lineNumber, lhs.columnNumber, lhs, rhs); }
+}
+
+// syntax.Expression.LessThan
+LessThan LessThan() : {
+    Expression lhs, rhs;
+}
+{
+    lhs = CommonExpression() "<" rhs = Expression()
+    { return new LessThan(lhs.lineNumber, lhs.columnNumber, lhs, rhs); }
+}
+
+// syntax.Expression.Plus
+Plus Plus() : {
+    Expression lhs, rhs;
+}
+{
+    lhs = CommonExpression() "+" rhs = Expression()
+    { return new Plus(lhs.lineNumber, lhs.columnNumber, lhs, rhs); }
+}
+
+// syntax.Expression.Minus
+Minus Minus() : {
+    Expression lhs, rhs;
+}
+{
+    lhs = CommonExpression() "-" rhs = Expression()
+    { return new Minus(lhs.lineNumber, lhs.columnNumber, lhs, rhs); }
+}
+
+// syntax.Expression.Times
+Times Times() : {
+    Expression lhs, rhs;
+}
+{
+    lhs = CommonExpression() "*" rhs = Expression()
+    { return new Times(lhs.lineNumber, lhs.columnNumber, lhs, rhs); }
+}
+
+// syntax.Expression.Call
+Call Call() : {
+    Expression obj;
+    Identifier func;
+    List<Expression> args;
+}
+{
+    obj = CommonExpression() "." func = Identifier() "(" args = ExpressionList() ")"
+    { return new Call(obj.lineNumber, obj.columnNumber, obj, func, args); }
+}
+
+// syntax.Expression.ArrayLookup
+ArrayLookup ArrayLookup() : {
+    Expression e_base, e_idx;
+}
+{
+    e_base = CommonExpression() "[" e_idx = Expression() "]"
+    { return new ArrayLookup(e_base.lineNumber, e_base.columnNumber, e_base, e_idx); }
+}
+
+// syntax.Expression.ArrayLength
+ArrayLength ArrayLength() : {
+    Expression base;
+}
+{
+    base = CommonExpression() "." <K_LENGTH>
+    { return new ArrayLength(base.lineNumber, base.columnNumber, base); }
+}
+
+// syntax.Expression.NewArray
+NewArray NewArray() : {
+    Token t;
+    Expression size;
+}
+{
+    t = <K_NEW> <K_INT> "[" size = Expression() "]"
+    { return new NewArray(t.beginLine, t.beginColumn, size); }
+}
+
+// syntax.Expression.NewObject
+NewObject NewObject() : {
+    Token t;
+    Identifier name;
+    List<Expression> args;
+}
+{
+    t = <K_NEW> name = Identifier() "(" args = ExpressionList() ")"
+    // TODO: What do we do with the constructor args?
+    { return new NewObject(t.beginLine, t.beginColumn, name); }
+}
+
+// syntax.Expression.Not
+Not Not() : {
+    Token t;
+    Expression e;
+}
+{
+    t = "!" e = Expression()
+    { return new Not(t.beginLine, t.beginColumn, e); }
+}
+
+// syntax.Expression.IntegerLiteral
+IntegerLiteral IntegerLiteral() : {
+    Token t;
+}
+{
+    t = <INTEGERLITERAL>
+    { return new IntegerLiteral(t.beginLine, t.beginColumn, Integer.parseInt(t.image)); }
+}
+
+// syntax.Expression.True
+True True() : {
+    Token t;
+}
+{
+    t = <K_TRUE>
+    { return new True(t.beginLine, t.beginColumn); }
+}
+
+// syntax.Expression.False
+False False() : {
+    Token t; 
+}
+{
+    t = <K_FALSE>
+    { return new False(t.beginLine, t.beginColumn); }
+}
+
+// syntax.Expression.IdentifierExp
+IdentifierExp IdentifierExp() : {
+    Identifier id;
+}
+{
+    id = Identifier()
+    { return new IdentifierExp(id.lineNumber, id.columnNumber, id.s); }
+}
+
+// syntax.Expression.This
+This This() : {
+    Token t;
+}
+{
+    t = <K_THIS>
+    { return new This(t.beginLine, t.beginColumn); }
+}
+
+// syntax.Expression
+Expression Expression() : {
+    Expression e;
+}
+{
+    (
+        // Lookahead of two
+        LOOKAHEAD(CommonExpression() "&&") e = And()
+        | LOOKAHEAD(CommonExpression() "<") e = LessThan()
+        | LOOKAHEAD(CommonExpression() "+") e = Plus()
+        | LOOKAHEAD(CommonExpression() "-") e = Minus()
+        | LOOKAHEAD(CommonExpression() "*") e = Times()
+        | LOOKAHEAD(CommonExpression() "[") e = ArrayLookup()
+        // Lookahead of three
+        | LOOKAHEAD(CommonExpression() "." Identifier()) e = Call()
+        | LOOKAHEAD(CommonExpression() "." <K_LENGTH>) e = ArrayLength()
+        // Common expression
+        | e = CommonExpression()
+    )
+
+    { return e; }
+}

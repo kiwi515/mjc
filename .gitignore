@@ -1,0 +1,13 @@
+# JavaCC build artifacts
+parse/javacc/*.*
+
+# Java build artifacts
+*.class
+*.jar
+
+# Compiler artifacts
+verbose.txt
+*.s
+
+# VSCode artifacts
+.vscode/
