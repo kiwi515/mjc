@@ -5,6 +5,8 @@ parse/javacc/*.*
 *.class
 *.jar
 
+!support.jar
+
 # Compiler artifacts
 verbose.txt
 *.s
