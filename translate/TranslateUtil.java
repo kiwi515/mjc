@@ -21,9 +21,6 @@ import tree.*;
  * Translate phase utilities
  */
 public final class TranslateUtil {
-    // Current label unique ID
-    private static int s_numLabel = 0;
-
     /**
      * Convert expression to conditional
      */
