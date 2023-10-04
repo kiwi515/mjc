@@ -23,4 +23,6 @@ typedef signed char s8;
 typedef float f32;
 typedef double f64;
 
+typedef enum { FALSE, TRUE };
+
 #endif

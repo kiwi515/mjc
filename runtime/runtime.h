@@ -10,34 +10,30 @@
 #include "types.h"
 #include <stddef.h>
 
+/*=======================================================*/
+/*                  Allocator functions                  */
+/*=======================================================*/
+
 /**
  * @brief Allocate memory for a MiniJava object
  *
  * @param sz Memory block size
  * @return void* Memory block
  */
-void* runtime_alloc_object(size_t sz);
+void* runtime_alloc_object(u32 sz);
 
 /**
  * @brief Allocate memory for a MiniJava array
  *
- * @param elemSize Element size
- * @param numElem Number of elements
+ * @param sz Element size
+ * @param n Number of elements
  * @return void* Memory block
  */
-void* runtime_alloc_array(size_t elemSize, size_t numElem);
+void* runtime_alloc_array(u32 sz, u32 n);
 
-/**
- * @brief Assert that an array subscript is valid
- * (in the range 0 <= index < array.length)
- *
- * @note Function DOES NOT RETURN if index is invalid, execution is instead
- * halted
- *
- * @param object Array object
- * @param index Subscript index
- */
-void runtime_assert_array_subscript(const void* const object, s32 index);
+/*=======================================================*/
+/*                    Print functions                    */
+/*=======================================================*/
 
 /**
  * @brief Print integer value to the console
