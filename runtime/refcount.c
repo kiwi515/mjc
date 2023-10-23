@@ -26,6 +26,7 @@ void refcount_increment(HeapHeader* header) {
 void refcount_decrement(HeapHeader* header) {
     assert(header != NULL);
 
+    // Sanity check: Ref count should be valid for decrement
     assert(header->ref > 0);
     header->ref--;
 
