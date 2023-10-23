@@ -244,6 +244,7 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
      */
     @Override
     public Stm visit(final Assign n) {
+        // Determine lvalue/rvalue
         Exp lhs = n.i.accept(new IRExpressionVisitor());
         Exp rhs = n.e.accept(new IRExpressionVisitor());
 
@@ -257,18 +258,26 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
 
         // Check for pointer assignment, and NOT null pointer
         if (TranslateUtil.identIsObjRef(n.i) && !TranslateUtil.expIsConstZero(rhs)) {
+            // Increment incoming (rvalue) reference
             assign = TranslateUtil.joinFragments(
-                    // Decrement outgoing
-                    new EVAL(new CALL(
-                            new NAME("runtime_ref_dec"),
-                            lhs)),
                     // Do assignment
                     assign,
-                    // Increment incoming
                     new EVAL(new CALL(
                             new NAME("runtime_ref_inc"),
                             lhs)));
+
+            // Decrement outgoing (old lvalue) reference if it is initialized
+            if (Phase.getInitedLocals().contains(n.i.s)) {
+                assign = TranslateUtil.joinFragments(
+                        new EVAL(new CALL(
+                                new NAME("runtime_ref_dec"),
+                                lhs)),
+                        assign);
+            }
         }
+
+        // Track lvalue initialization
+        Phase.getInitedLocals().add(n.i.s);
 
         return assign;
     }

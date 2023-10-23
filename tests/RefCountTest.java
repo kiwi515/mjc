@@ -36,24 +36,13 @@ class CircularObject {
 
 class RefCountTest {
     public int execute() {
-        int dummy;
-        dummy = this.createRef();
-        dummy = this.initRef();
-        return 0;
-    }
-
-    /**
-     * Test creating a reference
-     */
-    public int createRef() {
-        Object o;
-        return 0;
+        return this.ref();
     }
 
     /**
      * Test initializing a reference
      */
-    public int initRef() {
+    public int ref() {
         Object o;
         o = new Object();
         o = new Object();

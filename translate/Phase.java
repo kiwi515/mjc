@@ -8,11 +8,9 @@
 package translate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import main.Logger;
-
-import assem.*;
-import tree.*;
 
 /**
  * Wrapper for "translate phase" of compiler
@@ -21,6 +19,8 @@ public final class Phase {
     // Program IR fragments
     private static final ArrayList<IRFragment> s_fragments = new ArrayList<>();
 
+    // Currently processing method's initialized locals
+    private static final HashSet<String> s_initedLocals = new HashSet<>();
     // Currently processing method's label manager
     private static final LabelManager s_labelMgr = new LabelManager();
     // Currently processing method's temp manager
@@ -103,11 +103,21 @@ public final class Phase {
     }
 
     /**
+     * Access initialized local variables
+     */
+    public static HashSet<String> getInitedLocals() {
+        return s_initedLocals;
+    }
+
+    /**
      * Reset state before translating a new function/fragment
      */
     public static void resetForFunction() {
         // Don't make new label manager too, all functions share the same set
         // to avoid name collision
         s_currTempMgr = new TempManager();
+
+        // Clear local variable info
+        s_initedLocals.clear();
     }
 }
