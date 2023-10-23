@@ -10,12 +10,15 @@ package translate;
 import java.util.ArrayList;
 
 import check.ClassSymbol;
+import check.CheckUtil;
 import check.MethodSymbol;
+import check.SemanticsVisitor;
 import check.VarSymbol;
 import main.Arch;
 import main.Util;
 
 import tree.*;
+import syntax.*;
 
 /**
  * Translate phase utilities
@@ -30,6 +33,16 @@ public final class TranslateUtil {
         }
 
         return new CJUMP(CJUMP.NE, exp, new CONST(0), t.label, f.label);
+    }
+
+    /**
+     * Determine whether an identifer holds an object reference
+     * 
+     * @param ident Identifier
+     */
+    public static boolean identIsObjRef(final Identifier ident) {
+        final Type t = ident.accept(new SemanticsVisitor());
+        return CheckUtil.typeIsPrim(t) == false;
     }
 
     /**

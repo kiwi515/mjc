@@ -106,6 +106,7 @@ public final class Main {
                 "tests/IROptimizerTest.java",
                 "tests/ArrayTest.java",
                 "tests/DefUseTest.java",
+                "tests/RefCountTest.java"
         };
 
         for (final String test : tests) {

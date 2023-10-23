@@ -7,9 +7,6 @@
 
 package translate;
 
-import check.SemanticsVisitor;
-import check.CheckUtil;
-import main.Arch;
 import main.Logger;
 
 import syntax.*;
@@ -141,8 +138,8 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
      */
     @Override
     public Stm visit(final Block n) {
+        // Generate block IR
         Stm frag = null;
-
         for (final Statement s : n.sl) {
             frag = TranslateUtil.joinFragment(frag, s.accept(this));
         }
@@ -150,7 +147,7 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
         // Empty block
         if (frag == null) {
             // Make no-op
-            frag = new EVAL(new CONST(0));
+            return new EVAL(new CONST(0));
         }
 
         return frag;
@@ -258,22 +255,19 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
         // Assignment IR
         Stm assign = new MOVE(lhs, rhs);
 
-        // Inspect lvalue type
-        final Type ltype = n.i.accept(new SemanticsVisitor());
-
-        // Check for pointer assignment
-        if (!CheckUtil.typeIsPrim(ltype)) {
+        // Check for pointer assignment, and NOT null pointer
+        if (TranslateUtil.identIsObjRef(n.i) && !TranslateUtil.expIsConstZero(rhs)) {
             assign = TranslateUtil.joinFragments(
-                    // Increment incoming
-                    new EVAL(new CALL(
-                            new NAME("runtime_ref_inc"),
-                            rhs)),
                     // Decrement outgoing
                     new EVAL(new CALL(
                             new NAME("runtime_ref_dec"),
                             lhs)),
-                    // Assignment
-                    assign);
+                    // Do assignment
+                    assign,
+                    // Increment incoming
+                    new EVAL(new CALL(
+                            new NAME("runtime_ref_inc"),
+                            lhs)));
         }
 
         return assign;

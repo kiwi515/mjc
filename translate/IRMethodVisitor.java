@@ -13,6 +13,8 @@ import main.Logger;
 import syntax.*;
 import tree.*;
 
+import java.util.LinkedList;
+
 /**
  * Visitor which builds an IR fragment from a class method
  */
@@ -65,11 +67,25 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
         // Enter method scope
         check.Phase.getSymbolTable().enterScope(n.i.s);
 
-        Stm frag = null;
-
         // Method body
+        Stm frag = null;
         for (final Statement s : n.sl) {
             frag = TranslateUtil.joinFragment(frag, s.accept(new IRStatementVisitor()));
+        }
+
+        // Cleanup local variables
+        for (final LocalDecl l : n.locals) {
+            // Ignore non-reference types
+            if (!TranslateUtil.identIsObjRef(l.i)) {
+                continue;
+            }
+
+            // Decrement ref count
+            frag = TranslateUtil.joinFragments(
+                    frag,
+                    new EVAL(new CALL(
+                            new NAME("runtime_ref_dec"),
+                            l.i.accept(new IRExpressionVisitor()))));
         }
 
         // Method return
