@@ -5,24 +5,29 @@
  * Charset: US-ASCII
  */
 
-#ifndef MINI_JAVA_CC_TYPES_H
-#define MINI_JAVA_CC_TYPES_H
+#ifndef MINI_JAVA_COMPILER_TYPES_H
+#define MINI_JAVA_COMPILER_TYPES_H
+#include <stdint.h>
 
-typedef unsigned long long u64;
-typedef signed long long s64;
+typedef uint64_t u64;
+typedef int64_t s64;
 
-typedef unsigned long u32;
-typedef signed long s32;
+typedef uint32_t u32;
+typedef int32_t s32;
 
-typedef unsigned short u16;
-typedef signed short s16;
+typedef uint16_t u16;
+typedef int16_t s16;
 
-typedef unsigned char u8;
-typedef signed char s8;
+typedef uint8_t u8;
+typedef int8_t s8;
 
 typedef float f32;
 typedef double f64;
 
 typedef enum { FALSE, TRUE };
+typedef int BOOL;
+
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 #endif

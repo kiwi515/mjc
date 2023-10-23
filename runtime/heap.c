@@ -1,0 +1,162 @@
+/*
+ * Author:  Trevor Schiff, tschiff2020@my.fit.edu
+ * Course:  CSE 4251, Section 01, Spring 2023
+ * Project: MiniJava Compiler Project
+ * Charset: US-ASCII
+ */
+
+#include "heap.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Linked list of heap allocations
+HeapHeader* heap_list_head = NULL;
+HeapHeader* heap_list_tail = NULL;
+
+/**
+ * @brief Append new heap allocation to the runtime list
+ *
+ * @param header Block header
+ */
+static void list_append(HeapHeader* header) {
+    assert(header != NULL);
+
+    if (heap_list_head == NULL) {
+        // Initialize list
+        header->next = NULL;
+        header->prev = NULL;
+        heap_list_head = header;
+        heap_list_tail = header;
+    } else {
+        // Extend list
+        header->next = NULL;
+        header->prev = heap_list_tail;
+        heap_list_tail->next = header;
+        heap_list_tail = header;
+    }
+}
+
+/**
+ * @brief Remove heap allocation from the runtime list
+ *
+ * @param header Block header
+ */
+static void list_remove(HeapHeader* header) {
+    assert(header != NULL);
+
+    // Handle next link
+    if (header->next != NULL) {
+        header->next->prev = header->prev;
+    }
+    // If next is NULL, this is the list tail
+    else {
+        assert(header == heap_list_tail);
+        heap_list_tail = heap_list_tail->prev;
+    }
+
+    // Handle prev link
+    if (header->prev != NULL) {
+        header->prev->next = header->next;
+    }
+    // If prev is NULL, this is the list head
+    else {
+        assert(header == heap_list_head);
+        heap_list_head = heap_list_head->next;
+    }
+
+    // Isolate node
+    header->next = NULL;
+    header->prev = NULL;
+}
+
+/**
+ * @brief Derive header from a memory block pointer
+ *
+ * @param block Memory block
+ */
+HeapHeader* heap_get_header(const void* block) {
+    assert(block != NULL);
+
+    // Header is placed before block contents
+    return (HeapHeader*)((char*)block - sizeof(HeapHeader));
+}
+
+/**
+ * @brief Allocate memory from the heap
+ *
+ * @param size Allocation size
+ * @return void* Memory block
+ */
+void* heap_alloc(u32 size) {
+    HeapHeader* header;
+
+    // Extra space for block header
+    const u32 internalSize = size + sizeof(HeapHeader);
+
+    // Allocate memory block
+    header = malloc(internalSize);
+    if (header == NULL) {
+        // TODO: Mark-sweep here
+        printf("cannot allocate %lu from heap\n", internalSize);
+        exit(EXIT_FAILURE);
+        return NULL;
+    }
+
+    // Zero-initialize block
+    memset(header, 0, internalSize);
+
+    // Fill out block header structure
+    header->tag = HEAP_BLOCK_TAG;
+    header->size = size;
+    header->marked = FALSE;
+    header->ref = 0;
+
+    // Add to runtime list
+    list_append(header);
+
+    // Header is hidden from user
+    return header->data;
+}
+
+/**
+ * @brief Free memory block back to the heap
+ *
+ * @param block Memory block
+ */
+void heap_free(void* block) {
+    HeapHeader* header;
+
+    assert(block != NULL);
+
+    // Sanity check: block must be unreachable
+    header = heap_get_header(block);
+    assert(header->ref == 0);
+
+    // Remove from runtime list
+    list_remove(header);
+
+    // Release memory
+    free(header);
+}
+
+/**
+ * @brief Test whether a given address resides in the heap
+ *
+ * @param addr Memory address
+ * @return BOOL Whether addr is a valid pointer to heap-memory
+ */
+BOOL heap_contains(const void* addr) {
+    HeapHeader* iter;
+
+    // Iterate over all heap allocations
+    for (iter = heap_list_head; iter != NULL; iter = iter->next) {
+        // Check if the specified address resides in this allocation
+        if (addr >= iter && addr < (char*)iter + iter->size) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
