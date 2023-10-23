@@ -7,6 +7,9 @@
 
 package translate;
 
+import check.SemanticsVisitor;
+import check.CheckUtil;
+import main.Arch;
 import main.Logger;
 
 import syntax.*;
@@ -252,7 +255,28 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
             rhs = rel.asExp();
         }
 
-        return new MOVE(lhs, rhs);
+        // Assignment IR
+        Stm assign = new MOVE(lhs, rhs);
+
+        // Inspect lvalue type
+        final Type ltype = n.i.accept(new SemanticsVisitor());
+
+        // Check for pointer assignment
+        if (!CheckUtil.typeIsPrim(ltype)) {
+            assign = TranslateUtil.joinFragments(
+                    // Increment incoming
+                    new EVAL(new CALL(
+                            new NAME("runtime_ref_inc"),
+                            rhs)),
+                    // Decrement outgoing
+                    new EVAL(new CALL(
+                            new NAME("runtime_ref_dec"),
+                            lhs)),
+                    // Assignment
+                    assign);
+        }
+
+        return assign;
     }
 
     /**
