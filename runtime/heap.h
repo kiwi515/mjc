@@ -25,15 +25,15 @@ typedef struct HeapHeader {
     struct HeapHeader* prev; // at 0x8
 
     // Size of this allocation
-    u32 size; // at 0x8
+    u32 size; // at 0xC
 
     // Mark bit (for mark-sweep GC)
-    s32 marked : 1; // at 0xC
+    s32 marked : 1; // at 0x10
     // Reference count (for reference count GC)
-    s32 ref : 31; // at 0xC
+    s32 ref : 31; // at 0x10
 
     // Block data
-    u8 data[]; // at 0x10
+    u8 data[]; // at 0x14
 } HeapHeader;
 
 // Linked list of heap allocations
