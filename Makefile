@@ -62,9 +62,11 @@ runtime:
 	)
 
 # Mark all shell scripts as executable
+# Also, change CRLF endings -> LF
 .PHONY: perms
 perms:
 	$(foreach SCRIPT, $(SH_SCRIPTS), \
+		tr -d '\r' < $(SCRIPT) > tmpfile && mv tmpfile $(SCRIPT); \
 		chmod u+x $(SCRIPT); \
 	)
 
