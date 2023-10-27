@@ -1,13 +1,12 @@
 # Appel support.jar
 SUPPORT ?= support.jar
-
-# Compiler step (used for JAR name, and shell script name)
-COMPILER_STEP := compile
-# Compiler phase (used for submission JAR name)
-COMPILER_PHASE := phase12
+# Compiler JAR file
+EXEC_JAR := compile.jar
+# Package JAR file
+PACK_JAR := mjc.jar
 
 # Shell scripts for compiler
-SH_SCRIPTS := $(COMPILER_STEP) assemble
+SH_SCRIPTS := compile assemble Makefile
 
 # Tools
 JAVAC ?= javac
@@ -24,70 +23,71 @@ JAVACC_PAK := parse/javacc
 
 # Java source
 JAVA_SRC_DIRS := main parse check translate codegen codegen/arch/sparc regalloc optimize write
-JAVA_SRC_FILES := $(JAVA_SRC_DIRS:=/*.java) parse/*.jj
+JAVA_SRC_FILES := $(JAVA_SRC_DIRS:=/*.java)
+JAVACC_SRC_FILES := parse/*.jj
+JAVACC_GEN_SRC_FILES := parse/javacc/*.java
 JAVA_CLS_FILES := $(JAVA_SRC_DIRS:=/*.class) parse/javacc/*.class
 
 # Runtime (C) source
 C_RUNTIME_DIR := runtime
-C_RUNTIME_SRC := $(C_RUNTIME_DIR)/runtime.c
-C_RUNTIME_H := $(C_RUNTIME_DIR)/types.h $(C_RUNTIME_DIR)/runtime.h
+C_RUNTIME_SRC := $(wildcard $(C_RUNTIME_DIR)/*.c)
+C_RUNTIME_H := $(wildcard $(C_RUNTIME_DIR)/*.h)
 C_RUNTIME_FILES := $(C_RUNTIME_SRC) $(C_RUNTIME_H)
 C_RUNTIME_O := $(C_RUNTIME_SRC:.c=.o)
 
 # My custom test cases
 MY_TEST_CASES := Test.java tests/ArrayTest.java tests/DefUseTest.java tests/IROptimizerTest.java
 
-default: parser compiler 
+# Default rule: build everything
+default: compiler runtime perms
 
 # Create JavaCC parser Java source files
+.PHONY: parser
 parser:
 	mkdir -p $(JAVACC_PAK)
 	$(JAVACC) -STATIC=false -OUTPUT_DIRECTORY=$(JAVACC_PAK) parse/scanner.jj
 
-# Create everything related to the compiler
-compiler: $(COMPILER_STEP).jar
+# Create compiler JAR file
+compiler: parser
+# Compile compiler and parser
+	$(JAVAC) -classpath "$(SUPPORT)" $(JAVA_SRC_FILES) $(JAVACC_GEN_SRC_FILES)
+# Create compiler JAR
+	$(JAR) -cvfm $(EXEC_JAR) MANIFEST.txt $(JAVA_CLS_FILES)
+
+# Compile C runtime
+.PHONY: runtime
+runtime:
+	$(foreach SRC, $(C_RUNTIME_SRC), \
+		$(GCC) -Wall -Iruntime -c $(SRC) -o $(SRC:.c=.o); \
+	)
+
 # Mark all shell scripts as executable
+.PHONY: perms
+perms:
 	$(foreach SCRIPT, $(SH_SCRIPTS), \
 		chmod u+x $(SCRIPT); \
 	)
-# Compile C runtime
-	$(GCC) -Wall -Iruntime -c $(C_RUNTIME_SRC) -o $(C_RUNTIME_O)
 
-# Create compiler step JAR file
-$(COMPILER_STEP).jar:
-	$(foreach DIR, $(JAVA_SRC_DIRS), \
-		$(JAVAC) -classpath ".:$(SUPPORT)" $(DIR)/*.java; \
-	)
-
-	$(JAR) -cvfm $(COMPILER_STEP).jar MANIFEST.txt $(JAVA_CLS_FILES)
-
-# Create submission (phaseXX.jar) JAR file
-$(COMPILER_PHASE).jar:
-	$(JAR) -cvf $(COMPILER_PHASE).jar MANIFEST.txt README.txt Makefile $(JAVA_SRC_FILES) $(SH_SCRIPTS) $(C_RUNTIME_FILES) $(MY_TEST_CASES)
-
-# Upload to Jabberwocky container and compile
-jab:
-# Pack compiler into JAR
-	$(JAR) -cvf mjc.jar *
-# Upload JAR and remove local copy
-	$(JAB) send-file $(JAB_CT) mjc.jar
-	rm mjc.jar
-# Extract inside container and remove afterwards
-	$(JAB) run $(JAB_CT) $(JAR) -xvf mjc.jar
-	$(JAB) run $(JAB_CT) rm mjc.jar
-# Fix permissions
-	$(JAB) run $(JAB_CT) chmod +x Makefile
-	$(JAB) run $(JAB_CT) chmod +x compile
-	$(JAB) run $(JAB_CT) chmod +x assemble
-# Run make (use JavaCC inside container)
-	$(JAB) run $(JAB_CT) make JAVACC=javacc
+# Upload to Jabberwocky container
+jab: compiler
+# Remove old builds
+	$(JAB) run $(JAB_CT) rm -rf *
+# Send everything to container
+	$(JAR) -cvf $(PACK_JAR) $(EXEC_JAR) $(SUPPORT) $(SH_SCRIPTS) $(C_RUNTIME_FILES) $(MY_TEST_CASES)
+	$(JAB) send-file $(JAB_CT) $(PACK_JAR)
+# Extract inside container
+	$(JAB) run $(JAB_CT) $(JAR) -xvf $(PACK_JAR)
+# Build everything else
+	$(JAB) run $(JAB_CT) make runtime
+	$(JAB) run $(JAB_CT) make perms
 # Open jabberwocky shell
 	$(JAB) interact $(JAB_CT)
 
 # Remove build artifacts
 clean:
-	-/bin/rm parse/javacc/*.*
-	-/bin/rm */*.class
-	-/bin/rm $(COMPILER_PHASE).jar
-	-/bin/rm tests/*.s
-	-/bin/rm runtime/*.o
+	-/bin/rm -f $(JAVACC_GEN_SRC_FILES)
+	-/bin/rm -f $(JAVA_CLS_FILES)
+	-/bin/rm -f $(EXEC_JAR)
+	-/bin/rm -f $(PACK_JAR)
+	-/bin/rm -f $(C_RUNTIME_O)
+	-/bin/rm -f tests/*.s

@@ -10,4 +10,4 @@ set base=`dirname $`
 # Assemble to object file
 sparc-linux-as -g -Asparc $file.s -o $file.o
 # Link to ELF
-sparc-linux-ld -dynamic-linker /lib/ld-uClibc.so.0 -e start $file.o $base/runtime/runtime.o -lc -o $file
+sparc-linux-ld -dynamic-linker /lib/ld-uClibc.so.0 -e start $file.o $base/runtime/*.o  -lc -o $file
