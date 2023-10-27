@@ -99,7 +99,7 @@ void* heap_alloc(u32 size) {
     header = malloc(internalSize);
     if (header == NULL) {
         // TODO: Mark-sweep here
-        printf("cannot allocate %lu from heap\n", internalSize);
+        printf("cannot allocate %u from heap\n", internalSize);
         exit(EXIT_FAILURE);
         return NULL;
     }
@@ -153,7 +153,7 @@ BOOL heap_contains(const void* addr) {
     // Iterate over all heap allocations
     for (iter = heap_list_head; iter != NULL; iter = iter->next) {
         // Check if the specified address resides in this allocation
-        if (addr >= iter && addr < (char*)iter + iter->size) {
+        if ((u32)addr >= (u32)iter && (u32)addr < (u32)iter + iter->size) {
             return TRUE;
         }
     }

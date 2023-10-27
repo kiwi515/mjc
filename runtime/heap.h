@@ -11,7 +11,7 @@
 #include <stddef.h>
 
 // 32-bit "tag" to identify heap blocks from all other memory
-#define HEAP_BLOCK_TAG 'HBLK'
+#define HEAP_BLOCK_TAG 0x48424C4B // 'HBLK'
 
 /**
  * @brief Heap block header

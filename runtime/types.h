@@ -24,8 +24,9 @@ typedef int8_t s8;
 typedef float f32;
 typedef double f64;
 
-typedef enum { FALSE, TRUE };
 typedef int BOOL;
+#define FALSE 0
+#define TRUE 1
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
