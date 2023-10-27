@@ -7,6 +7,7 @@
 
 #include "refcount.h"
 #include <assert.h>
+#include <stdio.h>
 
 /**
  * @brief Increment a heap allocation's reference count
@@ -15,7 +16,10 @@
  */
 void refcount_increment(HeapHeader* header) {
     assert(header != NULL);
+
     header->ref++;
+    DEBUG_LOG("[refcount] increment %p (%u), now %d\n", header, header->size,
+              header->ref);
 }
 
 /**
@@ -28,10 +32,14 @@ void refcount_decrement(HeapHeader* header) {
 
     // Sanity check: Ref count should be valid for decrement
     assert(header->ref > 0);
+
     header->ref--;
+    DEBUG_LOG("[refcount] decrement %p (%u), now %d\n", header, header->size,
+              header->ref);
 
     // Free unreferenced allocations
     if (header->ref == 0) {
-        heap_free(header);
+        heap_free(header->data);
+        DEBUG_LOG("[refcount] free %p (%u)\n", header, header->size);
     }
 }

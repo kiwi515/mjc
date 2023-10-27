@@ -30,7 +30,7 @@ typedef struct HeapHeader {
     // Mark bit (for mark-sweep GC)
     s32 marked : 1; // at 0x10
     // Reference count (for reference count GC)
-    s32 ref : 31; // at 0x10
+    volatile s32 ref : 31; // at 0x10
 
     // Block data
     u8 data[]; // at 0x14

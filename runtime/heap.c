@@ -99,7 +99,7 @@ void* heap_alloc(u32 size) {
     header = malloc(internalSize);
     if (header == NULL) {
         // TODO: Mark-sweep here
-        printf("cannot allocate %u from heap\n", internalSize);
+        DEBUG_LOG("[heap] cannot allocate %u from heap\n", internalSize);
         exit(EXIT_FAILURE);
         return NULL;
     }

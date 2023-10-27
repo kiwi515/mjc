@@ -1,3 +1,6 @@
+# "No debug" flag
+NDEBUG ?= 0
+
 # Appel support.jar
 SUPPORT ?= support.jar
 # Compiler JAR file
@@ -6,7 +9,7 @@ EXEC_JAR := compile.jar
 PACK_JAR := mjc.jar
 
 # Shell scripts for compiler
-SH_SCRIPTS := compile assemble Makefile
+SH_SCRIPTS := compile assemble buildgc Makefile
 
 # Tools
 JAVAC ?= javac
@@ -34,9 +37,14 @@ C_RUNTIME_SRC := $(wildcard $(C_RUNTIME_DIR)/*.c)
 C_RUNTIME_H := $(wildcard $(C_RUNTIME_DIR)/*.h)
 C_RUNTIME_FILES := $(C_RUNTIME_SRC) $(C_RUNTIME_H)
 C_RUNTIME_O := $(C_RUNTIME_SRC:.c=.o)
+# Runtime compiler flags
+CFLAGS := -Wall -Iruntime
+ifeq ($(NDEBUG),1)
+	CFLAGS += -DNDEBUG
+endif
 
 # My custom test cases
-MY_TEST_CASES := Test.java tests/ArrayTest.java tests/DefUseTest.java tests/IROptimizerTest.java
+MY_TEST_CASES := Test.java tests/*.java
 
 # Default rule: build everything
 default: compiler runtime perms
@@ -58,7 +66,7 @@ compiler: parser
 .PHONY: runtime
 runtime:
 	$(foreach SRC, $(C_RUNTIME_SRC), \
-		$(GCC) -Wall -Iruntime -c $(SRC) -o $(SRC:.c=.o); \
+		$(GCC) $(CFLAGS) -c $(SRC) -o $(SRC:.c=.o); \
 	)
 
 # Mark all shell scripts as executable
@@ -80,7 +88,7 @@ jab: compiler
 # Extract inside container
 	$(JAB) run $(JAB_CT) $(JAR) -xvf $(PACK_JAR)
 # Build everything else
-	$(JAB) run $(JAB_CT) make runtime
+	$(JAB) run $(JAB_CT) make runtime NDEBUG=$(NDEBUG)
 	$(JAB) run $(JAB_CT) make perms
 # Open jabberwocky shell
 	$(JAB) interact $(JAB_CT)

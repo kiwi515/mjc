@@ -31,4 +31,10 @@ typedef int BOOL;
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
+#ifndef NDEBUG
+#define DEBUG_LOG printf
+#else
+#define DEBUG_LOG (void)
+#endif
+
 #endif
