@@ -162,3 +162,17 @@ BOOL heap_contains(const void* addr) {
 
     return FALSE;
 }
+
+/**
+ * @brief Dump contents of the heap (for debug)
+ */
+void heap_dump(void) {
+    HeapHeader* iter;
+
+    DEBUG_LOG("[heap] alloced:\n");
+
+    for (iter = heap_list_head; iter != NULL; iter = iter->next) {
+        DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", iter, iter->size,
+                  iter->ref);
+    }
+}

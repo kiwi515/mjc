@@ -17,6 +17,11 @@ void* runtime_alloc_object(u32 size);
 void* runtime_alloc_array(u32 size, u32 n);
 
 /*=======================================================*/
+/*                  Debugging functions                  */
+/*=======================================================*/
+void runtime_debug_dumpheap(void);
+
+/*=======================================================*/
 /*              Garbage collector functions              */
 /*=======================================================*/
 void runtime_ref_inc(void* block);

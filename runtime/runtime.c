@@ -50,6 +50,11 @@ void* runtime_alloc_array(u32 size, u32 n) {
 }
 
 /**
+ * @brief Dump contents of the heap (for debug)
+ */
+void runtime_debug_dumpheap(void) { heap_dump(); }
+
+/**
  * @brief Increment a heap allocation's reference count
  *
  * @param block Memory block

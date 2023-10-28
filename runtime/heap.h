@@ -44,5 +44,6 @@ HeapHeader* heap_get_header(const void* block);
 void* heap_alloc(u32 size);
 void heap_free(void* block);
 BOOL heap_contains(const void* addr);
+void heap_dump(void);
 
 #endif

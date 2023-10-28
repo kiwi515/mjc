@@ -45,6 +45,11 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         translate.Phase.resetForFunction();
         // Translate main function
         Stm frag = n.body.accept(new IRStatementVisitor());
+        // Dump heap for debug at end of execution
+        frag = TranslateUtil.joinFragments(
+                frag,
+                new EVAL(new CALL(new NAME("runtime_debug_dumpheap"))));
+
         // Dress fragment
         frag = TranslateUtil.dressFragment(frag, n.nameOfMainClass.s, "main");
         // Save fragment
