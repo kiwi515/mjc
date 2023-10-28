@@ -8,3 +8,7 @@ mv tests/RcClobberTest RcClobberTest
 ./compile tests/RcArgumentTest.java
 ./assemble tests/RcArgumentTest.s
 mv tests/RcArgumentTest RcArgumentTest
+
+./compile tests/RcEscapeTest.java
+./assemble tests/RcEscapeTest.s
+mv tests/RcEscapeTest RcEscapeTest
