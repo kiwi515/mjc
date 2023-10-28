@@ -104,6 +104,8 @@ void* heap_alloc(u32 size) {
         return NULL;
     }
 
+    DEBUG_LOG("[heap] alloc %d\n", size);
+
     // Zero-initialize block
     memset(header, 0, internalSize);
 

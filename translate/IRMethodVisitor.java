@@ -60,6 +60,8 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
      */
     @Override
     public Stm visit(final MethodDecl n) {
+        Stm frag = null;
+
         // Class/method name for dressing the fragment
         final String cls = check.Phase.getSymbolTable().currentClass().name;
         final String method = n.i.s;
@@ -67,8 +69,22 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
         // Enter method scope
         check.Phase.getSymbolTable().enterScope(n.i.s);
 
+        // Increment object aliases' ref counts
+        for (final FormalDecl f : n.formals) {
+            // Ignore non-reference types
+            if (!TranslateUtil.identIsObjRef(f.i)) {
+                continue;
+            }
+
+            // Decrement ref count
+            frag = TranslateUtil.joinFragments(
+                    frag,
+                    new EVAL(new CALL(
+                            new NAME("runtime_ref_inc"),
+                            f.i.accept(new IRExpressionVisitor()))));
+        }
+
         // Method body
-        Stm frag = null;
         for (final Statement s : n.sl) {
             frag = TranslateUtil.joinFragment(frag, s.accept(new IRStatementVisitor()));
         }
@@ -86,6 +102,21 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
                     new EVAL(new CALL(
                             new NAME("runtime_ref_dec"),
                             l.i.accept(new IRExpressionVisitor()))));
+        }
+
+        // Decrement object aliases' ref counts
+        for (final FormalDecl f : n.formals) {
+            // Ignore non-reference types
+            if (!TranslateUtil.identIsObjRef(f.i)) {
+                continue;
+            }
+
+            // Decrement ref count
+            frag = TranslateUtil.joinFragments(
+                    frag,
+                    new EVAL(new CALL(
+                            new NAME("runtime_ref_dec"),
+                            f.i.accept(new IRExpressionVisitor()))));
         }
 
         // Method return

@@ -1,6 +1,10 @@
 #!/bin/csh
 
 # Build garbage collector tests
-./compile tests/RefCountTest.java
-./assemble tests/RefCountTest.s
-mv tests/RefCountTest RefCountTest
+./compile tests/RcClobberTest.java
+./assemble tests/RcClobberTest.s
+mv tests/RcClobberTest RcClobberTest
+
+./compile tests/RcArgumentTest.java
+./assemble tests/RcArgumentTest.s
+mv tests/RcArgumentTest RcArgumentTest

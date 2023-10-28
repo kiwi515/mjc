@@ -256,18 +256,26 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
         // Assignment IR
         Stm assign = new MOVE(lhs, rhs);
 
-        // Check for pointer assignment, and NOT null pointer
-        if (TranslateUtil.identIsObjRef(n.i) && !TranslateUtil.expIsConstZero(rhs)) {
-            // Increment incoming (rvalue) reference
-            assign = TranslateUtil.joinFragments(
-                    // Do assignment
-                    assign,
-                    new EVAL(new CALL(
-                            new NAME("runtime_ref_inc"),
-                            lhs)));
+        // Check for pointer assignment
+        if (TranslateUtil.identIsObjRef(n.i)) {
+            // Increment incoming (rvalue) reference if non-null
+            if (!TranslateUtil.expIsConstZero(rhs)) {
+                assign = TranslateUtil.joinFragments(
+                        assign,
+                        new EVAL(new CALL(
+                                new NAME("runtime_ref_inc"),
+                                lhs)));
+            }
 
-            // Decrement outgoing (old lvalue) reference if it is initialized
-            if (Phase.getInitedLocals().contains(n.i.s)) {
+            // Decrement outgoing (old) reference if it exists
+            boolean decrement = false;
+            // 1. Lvalue is an function argument
+            decrement |= check.Phase.getSymbolTable().currentMethod().getFormal(n.i.s) != null;
+            // 2. Lvalue is an *initialized* local
+            decrement |= Phase.getInitedLocals().contains(n.i.s);
+
+            // Decrement outgoing (old) reference if it exists
+            if (decrement) {
                 assign = TranslateUtil.joinFragments(
                         new EVAL(new CALL(
                                 new NAME("runtime_ref_dec"),

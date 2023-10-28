@@ -7,7 +7,7 @@
 
 class Main {
     public static void main(String[] a) {
-        System.out.println(new RefCountTest().execute());
+        System.out.println(new RcClobberTest().execute());
     }
 }
 
@@ -22,30 +22,14 @@ class Object {
     }
 }
 
-/**
- * Test object (circular link)
- */
-class CircularObject {
-    CircularObject next;
-    CircularObject prev;
-
-    public int dummymtd() {
-        return 0;
-    }
-}
-
-class RefCountTest {
+class RcClobberTest {
     public int execute() {
-        return this.ref();
-    }
-
-    /**
-     * Test initializing a reference
-     */
-    public int ref() {
         Object o;
         o = new Object();
+
+        // Clobber reference
         o = new Object();
+
         return 0;
     }
 }
