@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import codegen.CodeFragment;
+import main.Arch;
 import main.Logger;
 import main.Util;
 import optimize.Lifetime;
@@ -379,6 +380,11 @@ public final class SparcOptimizer {
 
         // First non-nop instruction after function call
         final Instruction afterCallInsn = frag.code.get(j);
+
+        // Does it actually involve the return value?
+        if (!afterCallInsn.uses(new NameOfTemp("%o0"))) {
+            return -1;
+        }
 
         // Instruction after call is not a MOV (%o0 is not being preserved)
         if (!opcode(afterCallInsn).equals("mov")) {

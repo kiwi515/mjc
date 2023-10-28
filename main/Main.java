@@ -83,7 +83,7 @@ public final class Main {
                 return;
             }
         } catch (final Exception e) {
-            ;
+            Logger.logVerboseLn(e.toString());
         }
     }
 
