@@ -60,7 +60,9 @@ void runtime_debug_dumpheap(void) { heap_dump(); }
  * @param block Memory block
  */
 void runtime_ref_inc(void* block) {
-    refcount_increment(heap_get_header(block));
+    if (block != NULL) {
+        refcount_increment(heap_get_header(block));
+    }
 }
 
 /**
@@ -69,7 +71,9 @@ void runtime_ref_inc(void* block) {
  * @param block Memory block
  */
 void runtime_ref_dec(void* block) {
-    refcount_decrement(heap_get_header(block));
+    if (block != NULL) {
+        refcount_decrement(heap_get_header(block));
+    }
 }
 
 /**

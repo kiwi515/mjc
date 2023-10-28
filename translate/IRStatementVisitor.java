@@ -7,6 +7,7 @@
 
 package translate;
 
+import check.VarSymbol;
 import main.Logger;
 
 import syntax.*;
@@ -273,6 +274,9 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
             decrement |= check.Phase.getSymbolTable().currentMethod().getFormal(n.i.s) != null;
             // 2. Lvalue is an *initialized* local
             decrement |= Phase.getInitedLocals().contains(n.i.s);
+            // 3. Lvalue is a member objref
+            final VarSymbol vs = check.Phase.getSymbolTable().currentClass().getVar(n.i.s);
+            decrement |= (vs != null && !vs.isPrimitive());
 
             // Decrement outgoing (old) reference if it exists
             if (decrement) {
