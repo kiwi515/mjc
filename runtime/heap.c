@@ -6,6 +6,7 @@
  */
 
 #include "heap.h"
+#include "refcount.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -84,6 +85,27 @@ HeapHeader* heap_get_header(const void* block) {
 }
 
 /**
+ * @brief Check if an address is a valid heap header
+ *
+ * @param addr Memory address
+ * @return BOOL Whether addr points to a valid heap header
+ */
+BOOL heap_is_header(const void* addr) {
+    // Null pointer
+    if (addr == NULL) {
+        return FALSE;
+    }
+
+    // Address outside of heap memory
+    if (!heap_contains(addr)) {
+        return FALSE;
+    }
+
+    // Check block tag
+    return (heap_get_header(addr))->tag == HEAP_BLOCK_TAG;
+}
+
+/**
  * @brief Allocate memory from the heap
  *
  * @param size Allocation size
@@ -104,7 +126,7 @@ void* heap_alloc(u32 size) {
         return NULL;
     }
 
-    DEBUG_LOG("[heap] alloc %d\n", size);
+    DEBUG_LOG("[heap] alloc %p (size:%d)\n", header, size);
 
     // Zero-initialize block
     memset(header, 0, internalSize);
@@ -139,6 +161,9 @@ void heap_free(void* block) {
     // Remove from runtime list
     list_remove(header);
 
+    // Decrement refcount of children
+    refcount_decr_children(header);
+
     // Release memory
     free(header);
 }
@@ -155,7 +180,8 @@ BOOL heap_contains(const void* addr) {
     // Iterate over all heap allocations
     for (iter = heap_list_head; iter != NULL; iter = iter->next) {
         // Check if the specified address resides in this allocation
-        if ((u32)addr >= (u32)iter && (u32)addr < (u32)iter + iter->size) {
+        if ((u32)addr >= (u32)iter &&
+            (u32)addr < (u32)iter + (sizeof(HeapHeader) + iter->size)) {
             return TRUE;
         }
     }

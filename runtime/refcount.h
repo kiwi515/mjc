@@ -13,5 +13,6 @@
 
 void refcount_increment(HeapHeader* header);
 void refcount_decrement(HeapHeader* header);
+void refcount_decr_children(HeapHeader* header);
 
 #endif

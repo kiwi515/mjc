@@ -41,6 +41,7 @@ extern HeapHeader* heap_list_head;
 extern HeapHeader* heap_list_tail;
 
 HeapHeader* heap_get_header(const void* block);
+BOOL heap_is_header(const void* addr);
 void* heap_alloc(u32 size);
 void heap_free(void* block);
 BOOL heap_contains(const void* addr);
