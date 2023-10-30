@@ -12,3 +12,11 @@ mv tests/RcArgumentTest RcArgumentTest
 ./compile tests/RcEscapeTest.java
 ./assemble tests/RcEscapeTest.s
 mv tests/RcEscapeTest RcEscapeTest
+
+./compile tests/RcValidPointerTest.java
+./assemble tests/RcValidPointerTest.s
+mv tests/RcValidPointerTest RcValidPointerTest
+
+./compile tests/RcInvalidPointerTest.java
+./assemble tests/RcInvalidPointerTest.s
+mv tests/RcInvalidPointerTest RcInvalidPointerTest
