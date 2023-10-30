@@ -89,6 +89,11 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
             frag = TranslateUtil.joinFragment(frag, s.accept(new IRStatementVisitor()));
         }
 
+        // Method return
+        final Stm ret = new MOVE(Arch.get().getReturnAccessAsCallee(),
+                n.e.accept(new IRExpressionVisitor()));
+        frag = TranslateUtil.joinFragment(frag, ret);
+
         // Cleanup local variables
         for (final LocalDecl l : n.locals) {
             // Ignore non-reference types
@@ -118,11 +123,6 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
                             new NAME("runtime_ref_dec"),
                             f.i.accept(new IRExpressionVisitor()))));
         }
-
-        // Method return
-        final Stm ret = new MOVE(Arch.get().getReturnAccessAsCallee(),
-                n.e.accept(new IRExpressionVisitor()));
-        frag = TranslateUtil.joinFragment(frag, ret);
 
         // Exit method scope
         check.Phase.getSymbolTable().exitScope();
