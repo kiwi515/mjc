@@ -57,7 +57,7 @@ void refcount_decr_children(HeapHeader* header) {
     // Search block data for pointers
     for (i = 0; i < header->size; i += sizeof(void*)) {
         // Current word of the block
-        ptr = (char*)header->data + i;
+        ptr = (void**)((char*)header->data + i);
 
         // Check for heap block header
         if (heap_is_header(*ptr)) {
