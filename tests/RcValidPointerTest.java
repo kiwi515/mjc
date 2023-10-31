@@ -20,7 +20,7 @@ class Object {
 	int fillervar4;
 	int fakePointer;
 	
-	public int Object() {
+	public int setValues() {
 		// Match the HEAP_BLOCK bytes
 		// "HBLK" -> 48424c4b -> 1212304459
 		heapBlockTag = 1212304459;
@@ -37,6 +37,7 @@ class RcValidPointerTest {
     public int execute() {
         Object o;
         o = new Object();
+		o.setValues();
         return 0;
     }
 }
