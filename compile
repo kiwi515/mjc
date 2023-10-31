@@ -1,3 +1,3 @@
 #!/bin/csh
-~/bin/rm runtime/*.o
+#-/bin/rm runtime/*.o
 java -jar compile.jar $1
