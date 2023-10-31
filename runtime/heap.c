@@ -102,7 +102,7 @@ BOOL heap_is_header(const void* addr) {
     }
 
     // Check block tag
-    return (heap_get_header(addr))->tag == HEAP_BLOCK_TAG;
+    return heap_get_header(addr)->tag == HEAP_BLOCK_TAG;
 }
 
 /**
