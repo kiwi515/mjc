@@ -28,7 +28,7 @@ class Object {
 		fillervar2 = 0;
 		fillervar3 = 0; 
 		fillervar4 = 0;
-		fakePointer = 0x12345678;
+		fakePointer = 3735928559;
 		return 0;
 	}
 }
