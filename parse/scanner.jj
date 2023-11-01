@@ -529,6 +529,15 @@ ArrayAssign ArrayAssign() : {
     { return new ArrayAssign(id_name.lineNumber, id_name.columnNumber, id_name, e_idx, e_val); }
 }
 
+// Call where return value is ignored
+Statement VoidCall() : {
+    Call c;
+}
+{
+    c = Call() ";"    
+    { return new Assign(c.lineNumber, c.columnNumber, null, c); }
+}
+
 // syntax.Statement
 Statement Statement() : {
     Statement s;
@@ -540,7 +549,8 @@ Statement Statement() : {
         | s = While()
         | s = Print()
         | LOOKAHEAD(2) s = Assign()
-        | s = ArrayAssign()
+        | LOOKAHEAD(2) s = ArrayAssign()
+        | s = VoidCall()
     )
 
     { return s; }

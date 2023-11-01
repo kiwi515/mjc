@@ -288,6 +288,11 @@ public final class SemanticsVisitor implements SyntaxTreeVisitor<Type> {
      */
     @Override
     public Type visit(final Assign n) {
+        // Grammar hack for discarding return value
+        if (n.i == null) {
+            return Type.THE_VOID_TYPE;
+        }
+
         // Get LHS/RHS types
         final Type lhsType = n.i.accept(this);
         final Type rhsType = n.e.accept(this);
