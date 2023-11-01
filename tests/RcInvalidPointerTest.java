@@ -12,17 +12,22 @@ class Main {
  * Test object
  */
 class Object {
-	int fakePointer = 0x12345678;
+	int fakePointer;
 	
-    public int dummymtd() {
+    public int init() {
+        fakePointer = 12345678;
         return 0;
     }
 }
 
 class RcInvalidPointerTest {
     public int execute() {
+        int dummy;
+
         Object o;
         o = new Object();
+        dummy = o.init();
+
         return 0;
     }
 }
