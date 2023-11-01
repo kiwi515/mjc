@@ -94,9 +94,11 @@ TOKEN : {
 TOKEN : {
     < #LETTER: ["a"-"z"] | ["A"-"Z"] >
     | < #DIGIT: ["0"-"9"] >
+    | < #HEXPREFIX: "0x" >
     | < #UNDERSCORE: "_" >
     | < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|<UNDERSCORE>)* >
     | < INTEGERLITERAL: (<DIGIT>)+ >
+    | < HEXLITERAL: <HEXPREFIX> (<LETTER>|<DIGIT>)+ >
 }
 
 /**
@@ -527,6 +529,15 @@ ArrayAssign ArrayAssign() : {
     { return new ArrayAssign(id_name.lineNumber, id_name.columnNumber, id_name, e_idx, e_val); }
 }
 
+// Call where return value is ignored
+Statement VoidCall() : {
+    Call c;
+}
+{
+    c = Call() ";"    
+    { return new Assign(c.lineNumber, c.columnNumber, null, c); }
+}
+
 // syntax.Statement
 Statement Statement() : {
     Statement s;
@@ -538,7 +549,8 @@ Statement Statement() : {
         | s = While()
         | s = Print()
         | LOOKAHEAD(2) s = Assign()
-        | s = ArrayAssign()
+        | LOOKAHEAD(2) s = ArrayAssign()
+        | s = VoidCall()
     )
 
     { return s; }
@@ -559,6 +571,7 @@ Expression CommonExpression() : {
         LOOKAHEAD(2) e = NewArray()
         | e = NewObject()
         | e = Not()
+        | e = HexLiteral()
         | e = IntegerLiteral()
         | e = True()
         | e = False()
@@ -674,6 +687,14 @@ Not Not() : {
 {
     t = "!" e = Expression()
     { return new Not(t.beginLine, t.beginColumn, e); }
+}
+
+IntegerLiteral HexLiteral() : {
+    Token t;
+}
+{
+    t = <HEXLITERAL>
+    { return new IntegerLiteral(t.beginLine, t.beginColumn, Integer.parseInt(t.image.substring(2), 16)); }
 }
 
 // syntax.Expression.IntegerLiteral

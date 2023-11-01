@@ -245,6 +245,13 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
      */
     @Override
     public Stm visit(final Assign n) {
+        // Grammar hack for discarding return value
+        if (n.i == null) {
+            Exp rhs = n.e.accept(new IRExpressionVisitor());
+            assert rhs instanceof CALL;
+            return new EVAL(rhs);
+        }
+
         // Determine lvalue/rvalue
         Exp lhs = n.i.accept(new IRExpressionVisitor());
         Exp rhs = n.e.accept(new IRExpressionVisitor());

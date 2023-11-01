@@ -251,6 +251,11 @@ public final class DefUseVisitor implements SyntaxTreeVisitor<Void> {
      */
     @Override
     public Void visit(final Assign n) {
+        // Grammar hack for discarding return value
+        if (n.i == null) {
+            return null;
+        }
+
         // This is a def for the LHS
         final DefUsePair du = s_defUseMap.get(n.i.s);
 
