@@ -49,7 +49,7 @@ public final class Config {
 
             final String name = System.getProperty("arch").toLowerCase();
 
-            if (name2arch.containsKey(name)) {
+            if (!name2arch.containsKey(name)) {
                 Logger.logVerboseLn("Config error: Invalid architecture %s", name);
             } else {
                 s_arch = name2arch.get(name);
