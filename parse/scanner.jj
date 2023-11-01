@@ -94,9 +94,11 @@ TOKEN : {
 TOKEN : {
     < #LETTER: ["a"-"z"] | ["A"-"Z"] >
     | < #DIGIT: ["0"-"9"] >
+    | < #HEXPREFIX: "0x" >
     | < #UNDERSCORE: "_" >
     | < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|<UNDERSCORE>)* >
     | < INTEGERLITERAL: (<DIGIT>)+ >
+    | < HEXLITERAL: <HEXPREFIX> (<LETTER>|<DIGIT>)+ >
 }
 
 /**
@@ -559,6 +561,7 @@ Expression CommonExpression() : {
         LOOKAHEAD(2) e = NewArray()
         | e = NewObject()
         | e = Not()
+        | e = HexLiteral()
         | e = IntegerLiteral()
         | e = True()
         | e = False()
@@ -674,6 +677,14 @@ Not Not() : {
 {
     t = "!" e = Expression()
     { return new Not(t.beginLine, t.beginColumn, e); }
+}
+
+IntegerLiteral HexLiteral() : {
+    Token t;
+}
+{
+    t = <HEXLITERAL>
+    { return new IntegerLiteral(t.beginLine, t.beginColumn, Integer.parseInt(t.image.substring(2), 16)); }
 }
 
 // syntax.Expression.IntegerLiteral
