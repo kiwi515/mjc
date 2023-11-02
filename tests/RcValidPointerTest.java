@@ -8,14 +8,14 @@ class Main {
     }
 }
 
-class Parent {
-    Child child;
-    int heapBlockTag;
-    int fillervar1; 
-    int fillervar2;
-    int fillervar3; 
-    int fillervar4;
-    int fakePointer;
+class Parent { //0x23008
+    Child child; // 0x23012
+    int heapBlockTag; // 0x23016
+    int fillervar1; // 0x23020
+    int fillervar2; // 0x23024
+    int fillervar3; // 0x23028
+    int fillervar4; // 0x23032
+    int fillervar5; // 0x23036
 
     public int setValues() {
         // Match the HEAP_BLOCK bytes
@@ -25,10 +25,15 @@ class Parent {
 	fillervar2 = 0;
 	fillervar3 = 0; 
 	fillervar4 = 0;
-	fakePointer = 0 - 889275714;
+	fillervar5 = 0; // 0x23008 (Start of the heap)
 	return 0;
     }
 
+    public int printMemory() {
+        System.out.println(143414);
+        return 0;
+    }
+ 
     public int setChild(Child o) {
 	child = o;
         return 0;
@@ -36,11 +41,16 @@ class Parent {
 }
 
 class Child {
-    int dummy;
+    int memoryAddress;
+
+    public int setValues() {
+	memoryAddress = 143414;
+	return 0;
+    }
 }
 
 class RcValidPointerTest {
-    public int execute() {
+   public int execute() {
         int dummy;
         
 	Parent p;
@@ -51,6 +61,8 @@ class RcValidPointerTest {
 
 	dummy = p.setChild(c);
         dummy = p.setValues();
-        return 0;
+	dummy = c.setValues();
+	dummy = p.printMemory();
+	return 0;
     }
 }
