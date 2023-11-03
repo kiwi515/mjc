@@ -131,7 +131,7 @@ void* heap_alloc(u32 size) {
         return NULL;
     }
 
-    DEBUG_LOG("[heap] alloc %p (size:%d)\n", header, size);
+    DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size, header->data);
 
     // Zero-initialize block
     memset(header, 0, internalSize);

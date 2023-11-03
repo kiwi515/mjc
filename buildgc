@@ -20,3 +20,7 @@ mv tests/RcValidPointerTest RcValidPointerTest
 ./compile tests/RcInvalidPointerTest.java
 ./assemble tests/RcInvalidPointerTest.s
 mv tests/RcInvalidPointerTest RcInvalidPointerTest
+
+./compile tests/DoubleDecrementTest.java
+./assemble tests/DoubleDecrementTest.s
+mv tests/DoubleDecrementTest DoubleDecrementTest
