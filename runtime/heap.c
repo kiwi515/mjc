@@ -91,18 +91,23 @@ HeapHeader* heap_get_header(const void* block) {
  * @return BOOL Whether addr points to a valid heap header
  */
 BOOL heap_is_header(const void* addr) {
+    HeapHeader* iter;
+
     // Null pointer
     if (addr == NULL) {
         return FALSE;
     }
 
-    // Address outside of heap memory
-    if (!heap_contains(addr)) {
-        return FALSE;
+    // Iterate over all heap allocations
+    for (iter = heap_list_head; iter != NULL; iter = iter->next) {
+        
+        // Check if the specified address is the start of any allocation
+        if ((u32)addr == (u32)iter->data) {
+            return TRUE;
+        }
     }
 
-    // Check block tag
-    return heap_get_header(addr)->tag == HEAP_BLOCK_TAG;
+    return FALSE;
 }
 
 /**
@@ -132,7 +137,6 @@ void* heap_alloc(u32 size) {
     memset(header, 0, internalSize);
 
     // Fill out block header structure
-    header->tag = HEAP_BLOCK_TAG;
     header->size = size;
     header->marked = FALSE;
     header->ref = 0;
@@ -179,6 +183,7 @@ BOOL heap_contains(const void* addr) {
 
     // Iterate over all heap allocations
     for (iter = heap_list_head; iter != NULL; iter = iter->next) {
+        
         // Check if the specified address resides in this allocation
         if ((u32)addr >= (u32)iter &&
             (u32)addr < (u32)iter + (sizeof(HeapHeader) + iter->size)) {

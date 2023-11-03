@@ -10,30 +10,24 @@
 #include "types.h"
 #include <stddef.h>
 
-// 32-bit "tag" to identify heap blocks from all other memory
-#define HEAP_BLOCK_TAG 0x48424C4B // 'HBLK'
-
 /**
  * @brief Heap block header
  */
 typedef struct HeapHeader {
-    // Block identification
-    u32 tag; // at 0x0
-
     // Intrusive, doubly-linked list
-    struct HeapHeader* next; // at 0x4
-    struct HeapHeader* prev; // at 0x8
+    struct HeapHeader* next; // at 0x0
+    struct HeapHeader* prev; // at 0x4
 
     // Size of this allocation
-    u32 size; // at 0xC
+    u32 size; // at 0x8
 
     // Mark bit (for mark-sweep GC)
-    s32 marked : 1; // at 0x10
+    s32 marked : 1; // at 0xC
     // Reference count (for reference count GC)
-    volatile s32 ref : 31; // at 0x10
+    volatile s32 ref : 31; // at 0xC
 
     // Block data
-    u8 data[]; // at 0x14
+    u8 data[]; // at 0x10
 } HeapHeader;
 
 // Linked list of heap allocations
