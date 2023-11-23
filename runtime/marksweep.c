@@ -11,55 +11,55 @@
 static void mark(HeapHeader* header);
 static void sweep();
 
+// marks all reachable objects
 void gc_mark() {
-    void* current_block = heap_list_head; 
-
-    while (current_block != NULL) {
-        // valid pointer
-        if (heap_is_header(current_block)) {
-            HeapHeader* header = heap_get_header(current_block);
-            // if its being used
-            if (header->ref > 0) {
-                mark(header);
+    HeapHeader* current = (HeapHeader*)heap_list_head; 
+    while (current != NULL) {
+        // ignore invalid heap headers
+        if (heap_is_header(current)) {
+            // mark the block if it's in use
+            if (current->ref > 0) {
+                mark(current);
             }
-            current_block = (void*)(header->next);
-        // if its not valid
-        } else {
-            break;
         }
+        current = (HeapHeader*)(current->next);
     }
 }
 
+// marks a single heap header
 static void mark(HeapHeader* header) {
     assert(header != NULL);
-    // if already marked
-    if (header->marked) {
-        return;
+    // only mark the header if it's not already marked
+    if (!header->marked) {
+        header->marked = true;
     }
-    // mark object
-    header->marked = true;
 }
 
 void gc_sweep() {
     sweep();
 }
 
+// sweep phase
 static void sweep() {
-    HeapHeader* current = heap_get_header(heap_list_head);
-    HeapHeader* temp;
-    // for each object in the pointer linked list
+    HeapHeader* current = (HeapHeader*)heap_list_head;
+    HeapHeader* prev = NULL;
+
     while (current != NULL) {
-        // if the object is not marked
+        HeapHeader* next = (HeapHeader*)(current->next);
+
+        // free unmarked objects
         if (!current->marked) {
-            // free the object
-            temp = heap_get_header(current->next);
+            if (prev) {
+                prev->next = current->next;
+            }
             heap_free(current->data);
-            current = temp;
-        // if the object is marked
         } else {
-            // dont free
-            current = heap_get_header(current->next);
+            // unmark for next gc cycle and update previous pointer
+            current->marked = false;
+            prev = current;
         }
+
+        current = next;
     }
 }
 
