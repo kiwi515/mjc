@@ -7,6 +7,7 @@
 
 #include "heap.h"
 #include "refcount.h"
+#include "marksweep.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -125,10 +126,14 @@ void* heap_alloc(u32 size) {
     // Allocate memory block
     header = malloc(internalSize);
     if (header == NULL) {
-        // TODO: Mark-sweep here
-        DEBUG_LOG("[heap] cannot allocate %u from heap\n", internalSize);
-        exit(EXIT_FAILURE);
-        return NULL;
+        gc_collect();
+        DEBUG_LOG("[heap] cannot allocate %u from heap. Running mark-and-sweep to free memory.\n", internalSize);
+        header = malloc(internalSize);
+        if (header == NULL) {
+        DEBUG_LOG("Mark-and-sweep unable to free enough memory for allocation. [heap] cannot allocate %u from heap\n", internalSize);
+            exit(EXIT_FAILURE);
+            return NULL;
+        }
     }
 
     DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size, header->data);
