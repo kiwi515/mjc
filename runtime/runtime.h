@@ -8,7 +8,6 @@
 #ifndef MINI_JAVA_COMPILER_RUNTIME_H
 #define MINI_JAVA_COMPILER_RUNTIME_H
 #include "types.h"
-#include <stddef.h>
 
 /*=======================================================*/
 /*                  Allocator functions                  */

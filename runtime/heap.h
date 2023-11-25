@@ -8,7 +8,6 @@
 #ifndef MINI_JAVA_COMPILER_HEAP_H
 #define MINI_JAVA_COMPILER_HEAP_H
 #include "types.h"
-#include <stddef.h>
 
 /**
  * @brief Heap block header

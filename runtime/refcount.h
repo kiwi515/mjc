@@ -9,7 +9,6 @@
 #define MINI_JAVA_COMPILER_REFCOUNT_H
 #include "heap.h"
 #include "types.h"
-#include <stddef.h>
 
 void refcount_increment(HeapHeader* header);
 void refcount_decrement(HeapHeader* header);

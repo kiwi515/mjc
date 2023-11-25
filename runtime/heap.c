@@ -6,8 +6,8 @@
  */
 
 #include "heap.h"
-#include "refcount.h"
 #include "marksweep.h"
+#include "refcount.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,7 +101,7 @@ BOOL heap_is_header(const void* addr) {
 
     // Iterate over all heap allocations
     for (iter = heap_list_head; iter != NULL; iter = iter->next) {
-        
+
         // Check if the specified address is the start of any allocation
         if ((u32)addr == (u32)iter->data) {
             return TRUE;
@@ -121,25 +121,31 @@ void* heap_alloc(u32 size) {
     HeapHeader* header;
 
     // Extra space for block header
-    const u32 internalSize = size + sizeof(HeapHeader);
+    const u32 internal_size = size + sizeof(HeapHeader);
 
     // Allocate memory block
-    header = malloc(internalSize);
+    header = malloc(internal_size);
     if (header == NULL) {
+        DEBUG_LOG("Running mark-and-sweep to free memory.\n");
         gc_collect();
-        DEBUG_LOG("[heap] cannot allocate %u from heap. Running mark-and-sweep to free memory.\n", internalSize);
-        header = malloc(internalSize);
+
+        header = malloc(internal_size);
         if (header == NULL) {
-        DEBUG_LOG("Mark-and-sweep unable to free enough memory for allocation. [heap] cannot allocate %u from heap\n", internalSize);
+            DEBUG_LOG("Mark-and-sweep unable to free enough memory for "
+                      "allocation.\n");
+
+            DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
             exit(EXIT_FAILURE);
+
             return NULL;
         }
     }
 
-    DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size, header->data);
+    DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size,
+              header->data);
 
     // Zero-initialize block
-    memset(header, 0, internalSize);
+    memset(header, 0, internal_size);
 
     // Fill out block header structure
     header->size = size;
@@ -188,7 +194,7 @@ BOOL heap_contains(const void* addr) {
 
     // Iterate over all heap allocations
     for (iter = heap_list_head; iter != NULL; iter = iter->next) {
-        
+
         // Check if the specified address resides in this allocation
         if ((u32)addr >= (u32)iter &&
             (u32)addr < (u32)iter + (sizeof(HeapHeader) + iter->size)) {

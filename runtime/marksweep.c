@@ -4,16 +4,14 @@
 
 #include "marksweep.h"
 #include "heap.h"
-#include <stddef.h>
 #include <assert.h>
-#include <stdbool.h>
 
 static void mark(HeapHeader* header);
-static void sweep();
+static void sweep(void);
 
 // marks all reachable objects
-void gc_mark() {
-    HeapHeader* current = (HeapHeader*)heap_list_head; 
+void marksweep_mark(void) {
+    HeapHeader* current = heap_list_head;
     while (current != NULL) {
         // ignore invalid heap headers
         if (heap_is_header(current)) {
@@ -22,7 +20,7 @@ void gc_mark() {
                 mark(current);
             }
         }
-        current = (HeapHeader*)(current->next);
+        current = current->next;
     }
 }
 
@@ -31,21 +29,19 @@ static void mark(HeapHeader* header) {
     assert(header != NULL);
     // only mark the header if it's not already marked
     if (!header->marked) {
-        header->marked = true;
+        header->marked = TRUE;
     }
 }
 
-void gc_sweep() {
-    sweep();
-}
+void marksweep_sweep() { sweep(); }
 
 // sweep phase
-static void sweep() {
-    HeapHeader* current = (HeapHeader*)heap_list_head;
+static void sweep(void) {
+    HeapHeader* current = heap_list_head;
     HeapHeader* prev = NULL;
 
     while (current != NULL) {
-        HeapHeader* next = (HeapHeader*)(current->next);
+        HeapHeader* next = current->next;
 
         // free unmarked objects
         if (!current->marked) {
@@ -55,7 +51,7 @@ static void sweep() {
             heap_free(current->data);
         } else {
             // unmark for next gc cycle and update previous pointer
-            current->marked = false;
+            current->marked = FALSE;
             prev = current;
         }
 
@@ -63,7 +59,7 @@ static void sweep() {
     }
 }
 
-void gc_collect() {
-    gc_mark();
-    gc_sweep();
+void marksweep_collect(void) {
+    marksweep_mark();
+    marksweep_sweep();
 }
