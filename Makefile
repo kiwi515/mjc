@@ -9,7 +9,7 @@ EXEC_JAR := compile.jar
 PACK_JAR := mjc.jar
 
 # Shell scripts for compiler
-SH_SCRIPTS := compile assemble buildgc Makefile
+SH_SCRIPTS := compile assemble buildgc debug Makefile
 
 # Tools
 JAVAC ?= javac
@@ -38,9 +38,12 @@ C_RUNTIME_H := $(wildcard $(C_RUNTIME_DIR)/*.h)
 C_RUNTIME_FILES := $(C_RUNTIME_SRC) $(C_RUNTIME_H)
 C_RUNTIME_O := $(C_RUNTIME_SRC:.c=.o)
 # Runtime compiler flags
-CFLAGS := -Wall -Iruntime
+CFLAGS := -Wall -Iruntime -O0 -fno-ipa-icf
 ifeq ($(NDEBUG),1)
 	CFLAGS += -DNDEBUG
+else
+# Debug info for GDB
+	CFLAGS += -g
 endif
 
 # My custom test cases

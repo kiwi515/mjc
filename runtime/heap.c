@@ -8,6 +8,7 @@
 #include "heap.h"
 #include "marksweep.h"
 #include "refcount.h"
+#include "stackiter.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,7 +128,7 @@ void* heap_alloc(u32 size) {
     header = malloc(internal_size);
     if (header == NULL) {
         DEBUG_LOG("Running mark-and-sweep to free memory.\n");
-        gc_collect();
+        marksweep_collect();
 
         header = malloc(internal_size);
         if (header == NULL) {

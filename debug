@@ -1,0 +1,3 @@
+#!/bin/csh
+#-/bin/rm runtime/*.o
+/wrapper/qemu-sparc-static-wrapper -g 1234 $1 & sparc-linux-gdb -ex 'target remote :1234' -ex "file $1"

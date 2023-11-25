@@ -9,6 +9,7 @@
 #define MINI_JAVA_COMPILER_TYPES_H
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef uint64_t u64;
 typedef int64_t s64;

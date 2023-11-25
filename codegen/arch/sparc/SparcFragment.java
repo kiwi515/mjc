@@ -38,7 +38,7 @@ public final class SparcFragment extends CodeFragment {
             code.add(new Comment("As a result, the prologue is empty."));
         } else {
             code.add(new OperationInstruction(String.format(".set LOCLS, %d", this.mtd.locals.size())));
-            code.add(new OperationInstruction("save %sp, -4*(LOCLS+1+7+16)&-8, %sp"));
+            code.add(new OperationInstruction("save %sp, -4*(16+1+6+LOCLS)&-8, %sp"));
         }
 
         return code;
