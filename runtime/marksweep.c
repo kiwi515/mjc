@@ -1,18 +1,59 @@
 /*
- * Author:  Tyler Gutowski
+ * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
+ * Course:  CSE 4101, Fall 2023
+ * Project: Heap Heap Hooray
+ * Charset: US-ASCII
  */
 
 #include "marksweep.h"
 #include "heap.h"
-#include <assert.h>
 
 static void mark(HeapHeader* header);
 static void sweep(void);
 
-// marks all reachable objects
+// Linked list of mark roots
+static LinkList root_list;
+
+/**
+ * @brief Add new root for marking
+ *
+ * @param header Block header
+ */
+void marksweep_add_root(HeapHeader* header) {
+    assert(header != NULL);
+
+    // Don't overwrite existing list data
+    if (linklist_contains(&root_list, header)) {
+        return;
+    }
+
+    linklist_append(&root_list, header);
+    DEBUG_LOG("[marksweep] add_root %p\n", header);
+}
+
+/**
+ * @brief Remove root for marking
+ *
+ * @param header Block header
+ */
+void marksweep_remove_root(HeapHeader* header) {
+    assert(header != NULL);
+
+    if (linklist_remove(&root_list, header)) {
+        DEBUG_LOG("[marksweep] remove_root %p\n", header);
+    }
+}
+
+/**
+ * @brief Mark all reachable objects
+ */
 void marksweep_mark(void) {
-    HeapHeader* current = heap_list_head;
-    while (current != NULL) {
+    LinkNode* iter = heap_list.head;
+    HeapHeader* current = NULL;
+
+    while (iter != NULL) {
+        current = (HeapHeader*)iter->object;
+
         // ignore invalid heap headers
         if (heap_is_header(current)) {
             // mark the block if it's in use
@@ -20,45 +61,58 @@ void marksweep_mark(void) {
                 mark(current);
             }
         }
-        current = current->next;
+
+        iter = iter->next;
     }
 }
 
-// marks a single heap header
+/**
+ * @brief Mark the specified heap header
+ *
+ * @param header Block header
+ */
 static void mark(HeapHeader* header) {
     assert(header != NULL);
+
     // only mark the header if it's not already marked
     if (!header->marked) {
         header->marked = TRUE;
+        DEBUG_LOG("[marksweep] mark %p\n", header);
     }
 }
 
+/**
+ * @brief Sweep all unreachable objects
+ */
 void marksweep_sweep() { sweep(); }
 
-// sweep phase
+/**
+ * @brief Sweep all unreachable objects
+ */
 static void sweep(void) {
-    HeapHeader* current = heap_list_head;
-    HeapHeader* prev = NULL;
+    LinkNode* iter = heap_list.head;
+    HeapHeader* current = NULL;
 
-    while (current != NULL) {
-        HeapHeader* next = current->next;
+    while (iter != NULL) {
+        LinkNode* next = iter->next;
+        current = (HeapHeader*)iter->object;
 
         // free unmarked objects
         if (!current->marked) {
-            if (prev) {
-                prev->next = current->next;
-            }
             heap_free(current->data);
+            DEBUG_LOG("[marksweep] sweep %p\n", current);
         } else {
             // unmark for next gc cycle and update previous pointer
             current->marked = FALSE;
-            prev = current;
         }
 
-        current = next;
+        iter = next;
     }
 }
 
+/**
+ * @brief Perform mark-and-sweep garbage collection
+ */
 void marksweep_collect(void) {
     marksweep_mark();
     marksweep_sweep();

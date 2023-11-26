@@ -1,13 +1,13 @@
 /*
  * Author:  Trevor Schiff, tschiff2020@my.fit.edu
- * Course:  CSE 4251, Section 01, Spring 2023
- * Project: MiniJava Compiler Project
+ * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
+ * Course:  CSE 4101, Fall 2023
+ * Project: Heap Heap Hooray
  * Charset: US-ASCII
  */
 
 #include "refcount.h"
-#include <assert.h>
-#include <stdio.h>
+#include "heap.h"
 
 /**
  * @brief Increment a heap allocation's reference count
@@ -50,20 +50,30 @@ void refcount_decrement(HeapHeader* header) {
 void refcount_decr_children(HeapHeader* header) {
     int i;
     void** ptr;
-    HeapHeader* child;
+    HeapHeader* maybe_header;
 
     assert(header != NULL);
 
     // Search block data for pointers
     for (i = 0; i < header->size; i += sizeof(void*)) {
-        // Current word of the block
-        ptr = (void**)(&header->data[i]);
+        // Intepret the current word of the block as a possible pointer.
+        // (Specifically, 'ptr' is the ADDRESS of this current word.)
+        ptr = (void**)(header->data + i);
 
-        // Check for heap block header
-        if (heap_is_header(*ptr)) {
-            child = heap_get_header(*ptr);
-            DEBUG_LOG("[refcount] decr child %p of %p\n", child, header);
-            refcount_decrement(child);
+        // Don't bother with null values
+        // (Dereference 'ptr' to get the actual value)
+        if (*ptr == NULL) {
+            continue;
+        }
+
+        // Maybe this possible pointer is specifically a heap header pointer?
+        // (Dereference 'ptr' to get the actual value)
+        maybe_header = heap_get_header(*ptr);
+
+        // If we really found a heap header pointer, decrement its refcount.
+        if (heap_is_header(maybe_header)) {
+            DEBUG_LOG("[refcount] decr child %p of %p\n", maybe_header, header);
+            refcount_decrement(maybe_header);
         }
     }
 }

@@ -38,12 +38,12 @@ C_RUNTIME_H := $(wildcard $(C_RUNTIME_DIR)/*.h)
 C_RUNTIME_FILES := $(C_RUNTIME_SRC) $(C_RUNTIME_H)
 C_RUNTIME_O := $(C_RUNTIME_SRC:.c=.o)
 # Runtime compiler flags
-CFLAGS := -Wall -Iruntime -O0 -fno-ipa-icf
+CFLAGS := -Wall -Iruntime
 ifeq ($(NDEBUG),1)
-	CFLAGS += -DNDEBUG
+	CFLAGS += -DNDEBUG -O3
 else
 # Debug info for GDB
-	CFLAGS += -g
+	CFLAGS += -g -Og
 endif
 
 # My custom test cases

@@ -1,7 +1,8 @@
 /*
  * Author:  Trevor Schiff, tschiff2020@my.fit.edu
- * Course:  CSE 4251, Section 01, Spring 2023
- * Project: MiniJava Compiler Project
+ * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
+ * Course:  CSE 4101, Fall 2023
+ * Project: Heap Heap Hooray
  * Charset: US-ASCII
  */
 
@@ -14,6 +15,7 @@
 /*=======================================================*/
 void* runtime_alloc_object(u32 size);
 void* runtime_alloc_array(u32 size, u32 n);
+void runtime_cleanup(void);
 
 /*=======================================================*/
 /*                  Debugging functions                  */
@@ -25,6 +27,8 @@ void runtime_debug_dumpheap(void);
 /*=======================================================*/
 void runtime_ref_inc(void* block);
 void runtime_ref_dec(void* block);
+void runtime_root_add(void* block);
+void runtime_root_remove(void* block);
 
 /*=======================================================*/
 /*                    Print functions                    */

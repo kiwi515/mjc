@@ -1,12 +1,14 @@
 /*
  * Author:  Trevor Schiff, tschiff2020@my.fit.edu
- * Course:  CSE 4251, Section 01, Spring 2023
- * Project: MiniJava Compiler Project
+ * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
+ * Course:  CSE 4101, Fall 2023
+ * Project: Heap Heap Hooray
  * Charset: US-ASCII
  */
 
 #ifndef MINI_JAVA_COMPILER_TYPES_H
 #define MINI_JAVA_COMPILER_TYPES_H
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>

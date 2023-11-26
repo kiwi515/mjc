@@ -42,10 +42,6 @@ public final class Phase {
             writer.write("! Compiler phase 12 by Trevor Schiff.\n");
             writer.write("\n");
 
-            writer.write(".global __start_minijava\n");
-            writer.write("__start_minijava:\n");
-            writer.write("\n");
-
             writer.write(".global start\n");
             writer.write("start:\n");
             writer.write("\n");
@@ -54,9 +50,6 @@ public final class Phase {
                 writer.write(frag.toString());
                 writer.write("\n");
             }
-
-            writer.write(".global __stop_minijava\n");
-            writer.write("__stop_minijava:\n");
 
             writer.close();
         } catch (final IOException e) {

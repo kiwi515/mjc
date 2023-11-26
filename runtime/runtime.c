@@ -1,14 +1,15 @@
 /*
  * Author:  Trevor Schiff, tschiff2020@my.fit.edu
- * Course:  CSE 4251, Section 01, Spring 2023
- * Project: MiniJava Compiler Project
+ * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
+ * Course:  CSE 4101, Fall 2023
+ * Project: Heap Heap Hooray
  * Charset: US-ASCII
  */
 
 #include "runtime.h"
 #include "heap.h"
+#include "marksweep.h"
 #include "refcount.h"
-#include <stdio.h>
 
 /**
  * @brief Array header
@@ -50,6 +51,11 @@ void* runtime_alloc_array(u32 size, u32 n) {
 }
 
 /**
+ * @brief Cleanup any runtime-allocated memory before exiting
+ */
+void runtime_cleanup(void) { marksweep_collect(); }
+
+/**
  * @brief Dump contents of the heap (for debug)
  */
 void runtime_debug_dumpheap(void) { heap_dump(); }
@@ -73,6 +79,28 @@ void runtime_ref_inc(void* block) {
 void runtime_ref_dec(void* block) {
     if (block != NULL) {
         refcount_decrement(heap_get_header(block));
+    }
+}
+
+/**
+ * @brief Add new root for marking
+ *
+ * @param block Memory block
+ */
+void runtime_root_add(void* block) {
+    if (block != NULL) {
+        marksweep_add_root(heap_get_header(block));
+    }
+}
+
+/**
+ * @brief Remove root for marking
+ *
+ * @param block Memory block
+ */
+void runtime_root_remove(void* block) {
+    if (block != NULL) {
+        marksweep_remove_root(heap_get_header(block));
     }
 }
 

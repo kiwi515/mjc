@@ -101,6 +101,13 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
                 continue;
             }
 
+            // Remove locals from root list
+            frag = TranslateUtil.joinFragments(
+                    frag,
+                    new EVAL(new CALL(
+                            new NAME("runtime_root_remove"),
+                            l.i.accept(new IRExpressionVisitor()))));
+
             // Decrement ref count
             frag = TranslateUtil.joinFragments(
                     frag,

@@ -1,26 +1,22 @@
-#!/bin/csh
+#!/bin/bash
 
-# Build garbage collector tests
-./compile tests/RcClobberTest.java
-./assemble tests/RcClobberTest.s
-mv tests/RcClobberTest RcClobberTest
+# List of test files
+TEST_FILES=(
+  "RcClobberTest.java"
+  "RcArgumentTest.java"
+  "RcEscapeTest.java"
+  "RcValidPointerTest.java"
+  "RcInvalidPointerTest.java"
+  "DoubleDecrementTest.java"
+  "CyclicGarbageTest.java"
+)
 
-./compile tests/RcArgumentTest.java
-./assemble tests/RcArgumentTest.s
-mv tests/RcArgumentTest RcArgumentTest
+for file in "${TEST_FILES[@]}"; do
+  # Name without extension
+  testName=$(basename -s .java "$file")
 
-./compile tests/RcEscapeTest.java
-./assemble tests/RcEscapeTest.s
-mv tests/RcEscapeTest RcEscapeTest
-
-./compile tests/RcValidPointerTest.java
-./assemble tests/RcValidPointerTest.s
-mv tests/RcValidPointerTest RcValidPointerTest
-
-./compile tests/RcInvalidPointerTest.java
-./assemble tests/RcInvalidPointerTest.s
-mv tests/RcInvalidPointerTest RcInvalidPointerTest
-
-./compile tests/DoubleDecrementTest.java
-./assemble tests/DoubleDecrementTest.s
-mv tests/DoubleDecrementTest DoubleDecrementTest
+  # Build and move to top dir
+  ./compile "tests/$file"
+  ./assemble "tests/${testName}.s"
+  mv "tests/${testName}" "${testName}"
+done

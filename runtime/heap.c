@@ -1,78 +1,20 @@
 /*
  * Author:  Trevor Schiff, tschiff2020@my.fit.edu
- * Course:  CSE 4251, Section 01, Spring 2023
- * Project: MiniJava Compiler Project
+ * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
+ * Course:  CSE 4101, Fall 2023
+ * Project: Heap Heap Hooray
  * Charset: US-ASCII
  */
 
 #include "heap.h"
+#include "linklist.h"
 #include "marksweep.h"
 #include "refcount.h"
-#include "stackiter.h"
-#include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // Linked list of heap allocations
-HeapHeader* heap_list_head = NULL;
-HeapHeader* heap_list_tail = NULL;
-
-/**
- * @brief Append new heap allocation to the runtime list
- *
- * @param header Block header
- */
-static void list_append(HeapHeader* header) {
-    assert(header != NULL);
-
-    if (heap_list_head == NULL) {
-        // Initialize list
-        header->next = NULL;
-        header->prev = NULL;
-        heap_list_head = header;
-        heap_list_tail = header;
-    } else {
-        // Extend list
-        header->next = NULL;
-        header->prev = heap_list_tail;
-        heap_list_tail->next = header;
-        heap_list_tail = header;
-    }
-}
-
-/**
- * @brief Remove heap allocation from the runtime list
- *
- * @param header Block header
- */
-static void list_remove(HeapHeader* header) {
-    assert(header != NULL);
-
-    // Handle next link
-    if (header->next != NULL) {
-        header->next->prev = header->prev;
-    }
-    // If next is NULL, this is the list tail
-    else {
-        assert(header == heap_list_tail);
-        heap_list_tail = heap_list_tail->prev;
-    }
-
-    // Handle prev link
-    if (header->prev != NULL) {
-        header->prev->next = header->next;
-    }
-    // If prev is NULL, this is the list head
-    else {
-        assert(header == heap_list_head);
-        heap_list_head = heap_list_head->next;
-    }
-
-    // Isolate node
-    header->next = NULL;
-    header->prev = NULL;
-}
+LinkList heap_list;
 
 /**
  * @brief Derive header from a memory block pointer
@@ -93,7 +35,8 @@ HeapHeader* heap_get_header(const void* block) {
  * @return BOOL Whether addr points to a valid heap header
  */
 BOOL heap_is_header(const void* addr) {
-    HeapHeader* iter;
+    LinkNode* iter;
+    HeapHeader* header;
 
     // Null pointer
     if (addr == NULL) {
@@ -101,10 +44,11 @@ BOOL heap_is_header(const void* addr) {
     }
 
     // Iterate over all heap allocations
-    for (iter = heap_list_head; iter != NULL; iter = iter->next) {
+    for (iter = heap_list.head; iter != NULL; iter = iter->next) {
+        header = (HeapHeader*)iter->object;
 
         // Check if the specified address is the start of any allocation
-        if ((u32)addr == (u32)iter->data) {
+        if ((u32)addr == (u32)header) {
             return TRUE;
         }
     }
@@ -154,7 +98,7 @@ void* heap_alloc(u32 size) {
     header->ref = 0;
 
     // Add to runtime list
-    list_append(header);
+    linklist_append(&heap_list, header);
 
     // Header is hidden from user
     return header->data;
@@ -170,15 +114,15 @@ void heap_free(void* block) {
 
     assert(block != NULL);
 
-    // Sanity check: block must be unreachable
     header = heap_get_header(block);
-    assert(header->ref == 0);
-
-    // Remove from runtime list
-    list_remove(header);
 
     // Decrement refcount of children
     refcount_decr_children(header);
+
+    // Remove from runtime list
+    linklist_remove(&heap_list, header);
+    // Remove from mark-sweep roots
+    marksweep_remove_root(header);
 
     // Release memory
     free(header);
@@ -191,14 +135,16 @@ void heap_free(void* block) {
  * @return BOOL Whether addr is a valid pointer to heap-memory
  */
 BOOL heap_contains(const void* addr) {
-    HeapHeader* iter;
+    LinkNode* iter;
+    HeapHeader* header;
 
     // Iterate over all heap allocations
-    for (iter = heap_list_head; iter != NULL; iter = iter->next) {
+    for (iter = heap_list.head; iter != NULL; iter = iter->next) {
+        header = (HeapHeader*)iter->object;
 
         // Check if the specified address resides in this allocation
-        if ((u32)addr >= (u32)iter &&
-            (u32)addr < (u32)iter + (sizeof(HeapHeader) + iter->size)) {
+        if ((u32)addr >= (u32)header &&
+            (u32)addr < (u32)header + (sizeof(HeapHeader) + header->size)) {
             return TRUE;
         }
     }
@@ -210,12 +156,14 @@ BOOL heap_contains(const void* addr) {
  * @brief Dump contents of the heap (for debug)
  */
 void heap_dump(void) {
-    HeapHeader* iter;
+    LinkNode* iter;
+    HeapHeader* header;
 
     DEBUG_LOG("[heap] alloced:\n");
 
-    for (iter = heap_list_head; iter != NULL; iter = iter->next) {
-        DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", iter, iter->size,
-                  iter->ref);
+    for (iter = heap_list.head; iter != NULL; iter = iter->next) {
+        header = (HeapHeader*)iter->object;
+        DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", header, header->size,
+                  header->ref);
     }
 }
