@@ -71,13 +71,13 @@ void* heap_alloc(u32 size) {
     // Allocate memory block
     header = malloc(internal_size);
     if (header == NULL) {
-        DEBUG_LOG("Running mark-and-sweep to free memory.\n");
+        DEBUG_LOG("[heap] Running mark-and-sweep to free memory.\n");
         marksweep_collect();
 
         header = malloc(internal_size);
         if (header == NULL) {
-            DEBUG_LOG("Mark-and-sweep unable to free enough memory for "
-                      "allocation.\n");
+            DEBUG_LOG(
+                "[marksweep] Unable to free enough memory for allocation.\n");
 
             DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
             exit(EXIT_FAILURE);
