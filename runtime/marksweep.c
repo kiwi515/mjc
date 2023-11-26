@@ -81,20 +81,15 @@ static void search_block(void* block, u32 size) {
         // Maybe this possible pointer is specifically a heap header?
         maybe_header = heap_get_header(ptr);
 
-        if (heap_is_header(maybe_header)) {
+        if (heap_is_header(maybe_header) && !maybe_header->marked) {
             // If we really found a heap header pointer, mark it.
-            if (!maybe_header->marked) {
-                maybe_header->marked = TRUE;
-                DEBUG_LOG("[marksweep] mark %p\n", maybe_header);
-            }
+            DEBUG_LOG("[marksweep] mark %p\n", maybe_header);
+            maybe_header->marked = TRUE;
 
             // Also, recurse to continue through the object graph
-            if (!maybe_header->bfs) {
-                maybe_header->bfs = TRUE;
-                DEBUG_LOG("[marksweep] search_block %p (alloced)\n",
-                          maybe_header->data);
-                search_block(maybe_header->data, maybe_header->size);
-            }
+            DEBUG_LOG("[marksweep] search_block %p (alloced)\n",
+                      maybe_header->data);
+            search_block(maybe_header->data, maybe_header->size);
         }
     }
 }
@@ -134,7 +129,6 @@ void marksweep_sweep() {
         } else {
             // unmark for next gc cycle
             current->marked = FALSE;
-            current->bfs = FALSE;
         }
 
         iter = next;

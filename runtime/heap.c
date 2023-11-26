@@ -94,7 +94,6 @@ void* heap_alloc(u32 size) {
 
     // Fill out block header structure
     header->size = size;
-    header->bfs = FALSE;
     header->marked = FALSE;
     header->ref = 0;
 
