@@ -24,8 +24,11 @@ typedef struct LinkNode {
 } LinkNode;
 
 void linklist_free(LinkList* list);
+
 void linklist_append(LinkList* list, void* object);
 BOOL linklist_remove(LinkList* list, void* object);
+LinkNode* linklist_pop(LinkList* list);
+
 BOOL linklist_contains(LinkList* list, void* object);
 
 #endif

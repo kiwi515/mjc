@@ -7,40 +7,95 @@
 
 #include "marksweep.h"
 #include "heap.h"
-
-static void mark(HeapHeader* header);
-static void sweep(void);
-
-// Linked list of mark roots
-static LinkList root_list;
+#include <stdlib.h>
 
 /**
- * @brief Add new root for marking
- *
- * @param header Block header
+ * @brief SPARC stack frame
  */
-void marksweep_add_root(HeapHeader* header) {
-    assert(header != NULL);
+typedef struct StackFrame {
+    // Stack pointer
+    u32* sp;
+    // Frame size
+    u32 size;
+} StackFrame;
 
-    // Don't overwrite existing list data
-    if (linklist_contains(&root_list, header)) {
-        return;
-    }
+// Active stack frames
+static LinkList frame_list;
 
-    linklist_append(&root_list, header);
-    DEBUG_LOG("[marksweep] add_root %p\n", header);
+/**
+ * @brief Push a new stack frame
+ *
+ * @param frame Stack pointer
+ * @param size Frame size
+ */
+void marksweep_push_stack(void* frame, u32 size) {
+    StackFrame* f;
+
+    // Allocate and fill out stack frame structure
+    f = malloc(sizeof(StackFrame));
+    assert(f != NULL);
+    f->sp = (u32*)frame;
+    f->size = size;
+
+    linklist_append(&frame_list, f);
+
+    DEBUG_LOG("[marksweep] push_stack %p (size:%d)\n", frame, size);
 }
 
 /**
- * @brief Remove root for marking
- *
- * @param header Block header
+ * @brief Pop the current stack frame
  */
-void marksweep_remove_root(HeapHeader* header) {
-    assert(header != NULL);
+void marksweep_pop_stack(void) {
+    LinkNode* popped;
 
-    if (linklist_remove(&root_list, header)) {
-        DEBUG_LOG("[marksweep] remove_root %p\n", header);
+    popped = linklist_pop(&frame_list);
+    // List should never be empty when popping
+    assert(popped != NULL);
+
+    DEBUG_LOG("[marksweep] pop_stack %p\n");
+}
+
+/**
+ * @brief Search (and maybe recurse) through a memory block, looking for roots.
+ *
+ * @param block Memory block pointer
+ * @param size Memory block size
+ */
+static void search_block(void* block, u32 size) {
+    HeapHeader* maybe_header;
+    void* ptr;
+    int i;
+
+    assert(block != NULL);
+
+    // Search the block for references
+    for (i = 0; i < size / sizeof(u32); i++) {
+        // Intepret the current word of the frame as a possible pointer.
+        ptr = *((void**)block + i);
+
+        // Don't bother with null values.
+        if (ptr == NULL) {
+            continue;
+        }
+
+        // Maybe this possible pointer is specifically a heap header?
+        maybe_header = heap_get_header(ptr);
+
+        if (heap_is_header(maybe_header)) {
+            // If we really found a heap header pointer, mark it.
+            if (!maybe_header->marked) {
+                maybe_header->marked = TRUE;
+                DEBUG_LOG("[marksweep] mark %p\n", maybe_header);
+            }
+
+            // Also, recurse to continue through the object graph
+            if (!maybe_header->bfs) {
+                maybe_header->bfs = TRUE;
+                DEBUG_LOG("[marksweep] search_block %p (alloced)\n",
+                          maybe_header->data);
+                search_block(maybe_header->data, maybe_header->size);
+            }
+        }
     }
 }
 
@@ -48,48 +103,23 @@ void marksweep_remove_root(HeapHeader* header) {
  * @brief Mark all reachable objects
  */
 void marksweep_mark(void) {
-    LinkNode* iter = heap_list.head;
-    HeapHeader* current = NULL;
+    LinkNode* iter;
+    StackFrame* frame;
 
-    while (iter != NULL) {
-        current = (HeapHeader*)iter->object;
+    for (iter = frame_list.tail; iter != NULL; iter = iter->prev) {
+        assert(iter->object != NULL);
 
-        // ignore invalid heap headers
-        if (heap_is_header(current)) {
-            // mark the block if it's in use
-            if (current->ref > 0) {
-                mark(current);
-            }
-        }
-
-        iter = iter->next;
-    }
-}
-
-/**
- * @brief Mark the specified heap header
- *
- * @param header Block header
- */
-static void mark(HeapHeader* header) {
-    assert(header != NULL);
-
-    // only mark the header if it's not already marked
-    if (!header->marked) {
-        header->marked = TRUE;
-        DEBUG_LOG("[marksweep] mark %p\n", header);
+        // Search the stack frame for roots
+        frame = (StackFrame*)iter->object;
+        DEBUG_LOG("[marksweep] search_block %p (stack frame)\n", frame->sp);
+        search_block(frame->sp, frame->size);
     }
 }
 
 /**
  * @brief Sweep all unreachable objects
  */
-void marksweep_sweep() { sweep(); }
-
-/**
- * @brief Sweep all unreachable objects
- */
-static void sweep(void) {
+void marksweep_sweep() {
     LinkNode* iter = heap_list.head;
     HeapHeader* current = NULL;
 
@@ -97,13 +127,14 @@ static void sweep(void) {
         LinkNode* next = iter->next;
         current = (HeapHeader*)iter->object;
 
-        // free unmarked objects
+        // free unmarked objects, but don't touch any RC
         if (!current->marked) {
-            heap_free(current->data);
             DEBUG_LOG("[marksweep] sweep %p\n", current);
+            heap_free(current->data, FALSE);
         } else {
-            // unmark for next gc cycle and update previous pointer
+            // unmark for next gc cycle
             current->marked = FALSE;
+            current->bfs = FALSE;
         }
 
         iter = next;

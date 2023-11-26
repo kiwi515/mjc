@@ -27,8 +27,8 @@ void runtime_debug_dumpheap(void);
 /*=======================================================*/
 void runtime_ref_inc(void* block);
 void runtime_ref_dec(void* block);
-void runtime_root_add(void* block);
-void runtime_root_remove(void* block);
+void runtime_push_stack(void* frame, u32 size);
+void runtime_pop_stack(void);
 
 /*=======================================================*/
 /*                    Print functions                    */

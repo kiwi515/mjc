@@ -9,8 +9,8 @@
 #include "heap.h"
 #include "types.h"
 
-void marksweep_add_root(HeapHeader* header);
-void marksweep_remove_root(HeapHeader* header);
+void marksweep_push_stack(void* frame, u32 size);
+void marksweep_pop_stack(void);
 
 void marksweep_mark(void);
 void marksweep_sweep(void);

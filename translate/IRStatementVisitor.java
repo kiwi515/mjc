@@ -280,46 +280,6 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
             }
 
             /**
-             * Roots: Add
-             */
-
-            // Add new reference to roots if:
-            boolean add = false;
-            // 1. Lvalue is a function argument
-            add |= check.Phase.getSymbolTable().currentMethod().getFormal(n.i.s) != null;
-            // 2. Lvalue is a function local (and NOT a member)
-            add |= check.Phase.getSymbolTable().currentMethod().getLocal(n.i.s) != null;
-            // 3. Rvalue is non-null
-            add = add && !TranslateUtil.expIsConstZero(rhs);
-
-            // New reference becomes root if non-null
-            if (add) {
-                assign = TranslateUtil.joinFragments(
-                        assign,
-                        new EVAL(new CALL(
-                                new NAME("runtime_root_add"),
-                                lhs)));
-            }
-
-            /**
-             * Roots: Remove
-             */
-
-            // Remove old reference from roots if:
-            boolean remove = false;
-            // 1. Lvalue is an *initialized* local
-            remove |= Phase.getInitedLocals().contains(n.i.s);
-
-            // remove outgoing (old) reference if it exists
-            if (remove) {
-                assign = TranslateUtil.joinFragments(
-                        new EVAL(new CALL(
-                                new NAME("runtime_root_remove"),
-                                lhs)),
-                        assign);
-            }
-
-            /**
              * Reference counting: Decrement
              */
 

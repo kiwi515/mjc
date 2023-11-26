@@ -94,6 +94,7 @@ void* heap_alloc(u32 size) {
 
     // Fill out block header structure
     header->size = size;
+    header->bfs = FALSE;
     header->marked = FALSE;
     header->ref = 0;
 
@@ -108,8 +109,9 @@ void* heap_alloc(u32 size) {
  * @brief Free memory block back to the heap
  *
  * @param block Memory block
+ * @param recurse Whether to recurse
  */
-void heap_free(void* block) {
+void heap_free(void* block, BOOL recurse) {
     HeapHeader* header;
 
     assert(block != NULL);
@@ -117,12 +119,12 @@ void heap_free(void* block) {
     header = heap_get_header(block);
 
     // Decrement refcount of children
-    refcount_decr_children(header);
+    if (recurse) {
+        refcount_decr_children(header);
+    }
 
     // Remove from runtime list
     linklist_remove(&heap_list, header);
-    // Remove from mark-sweep roots
-    marksweep_remove_root(header);
 
     // Release memory
     free(header);

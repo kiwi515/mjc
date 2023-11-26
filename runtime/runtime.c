@@ -83,26 +83,21 @@ void runtime_ref_dec(void* block) {
 }
 
 /**
- * @brief Add new root for marking
+ * @brief Push a new stack frame (for mark-sweep GC)
  *
- * @param block Memory block
+ * @param frame Stack pointer
+ * @param size Frame size
  */
-void runtime_root_add(void* block) {
-    if (block != NULL) {
-        marksweep_add_root(heap_get_header(block));
+void runtime_push_stack(void* frame, u32 size) {
+    if (frame != NULL) {
+        marksweep_push_stack(frame, size);
     }
 }
 
 /**
- * @brief Remove root for marking
- *
- * @param block Memory block
+ * @brief Pop the current stack frame (for mark-sweep GC)
  */
-void runtime_root_remove(void* block) {
-    if (block != NULL) {
-        marksweep_remove_root(heap_get_header(block));
-    }
-}
+void runtime_pop_stack(void) { marksweep_pop_stack(); }
 
 /**
  * @brief Print integer value to the console

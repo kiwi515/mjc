@@ -45,9 +45,16 @@ public abstract class Arch {
     }
 
     /**
-     * Get word size on the SPARC architecture
+     * Get word size on the target architecture
      */
     abstract public int getWordSize();
+
+    /**
+     * Get the stack frame size on the target architecture given parameters
+     * 
+     * @param locals Number of locals in the function
+     */
+    abstract public int getStackFrameSize(int locals);
 
     /**
      * Check whether the given temp is a register (rather than a real temp)
@@ -70,7 +77,12 @@ public abstract class Arch {
     abstract public Exp getReturnAccessAsCaller();
 
     /**
-     * Access the stack/frame pointer through IR
+     * Access the stack pointer through IR
+     */
+    abstract public Exp getStackAccess();
+
+    /**
+     * Access the frame pointer through IR
      */
     abstract public Exp getFrameAccess();
 

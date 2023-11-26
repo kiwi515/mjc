@@ -18,10 +18,12 @@ typedef struct HeapHeader {
     // Size of this allocation
     u32 size; // at 0x0
 
+    // BFS tag bit (for mark-sweep recursion)
+    s32 bfs : 1; // at 0x4
     // Mark bit (for mark-sweep GC)
     s32 marked : 1; // at 0x4
     // Reference count (for reference count GC)
-    volatile s32 ref : 31; // at 0x4
+    volatile s32 ref : 30; // at 0x4
 
     // Block data
     u8 data[]; // at 0x8
@@ -33,7 +35,7 @@ extern LinkList heap_list;
 HeapHeader* heap_get_header(const void* block);
 BOOL heap_is_header(const void* addr);
 void* heap_alloc(u32 size);
-void heap_free(void* block);
+void heap_free(void* block, BOOL recurse);
 BOOL heap_contains(const void* addr);
 void heap_dump(void);
 

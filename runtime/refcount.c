@@ -35,9 +35,9 @@ void refcount_decrement(HeapHeader* header) {
     header->ref--;
     DEBUG_LOG("[refcount] decrement %p, now %d\n", header, header->ref);
 
-    // Free unreferenced allocations
+    // Free unreferenced allocations (and recurse the decrement operation)
     if (header->ref == 0) {
-        heap_free(header->data);
+        heap_free(header->data, TRUE);
         DEBUG_LOG("[refcount] free %p\n", header);
     }
 }

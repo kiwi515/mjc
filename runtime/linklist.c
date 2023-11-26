@@ -107,6 +107,27 @@ void linklist_append(LinkList* list, void* object) {
 }
 
 /**
+ * @brief Pop tail node from linked list
+ *
+ * @param list Linked list
+ * @return Popped node
+ */
+LinkNode* linklist_pop(LinkList* list) {
+    LinkNode* node;
+
+    // Empty list
+    if (list->tail == NULL) {
+        return NULL;
+    }
+
+    // Remove tail node
+    node = list->tail;
+    remove_impl(list, node);
+
+    return node;
+}
+
+/**
  * @brief Remove object from linked list
  *
  * @param list Linked list

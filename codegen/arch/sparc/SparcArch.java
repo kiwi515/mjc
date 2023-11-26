@@ -31,6 +31,24 @@ public final class SparcArch extends Arch {
     }
 
     /**
+     * Get the stack frame size on the SPARC architecture
+     * 
+     * @param locals Number of locals in the function
+     */
+    @Override
+    public int getStackFrameSize(int locals) {
+        // Number of words required in the frame
+        int words = locals + 16 + 1 + 6;
+
+        // Frame byte size
+        int bytes = getWordSize() * words;
+        // Double-word align
+        bytes = (bytes + 7) & (-8);
+
+        return bytes;
+    }
+
+    /**
      * Check whether the given temp is a register (rather than a real temp)
      */
     @Override
@@ -86,7 +104,15 @@ public final class SparcArch extends Arch {
     }
 
     /**
-     * Access the stack/frame pointer through IR
+     * Access the stack pointer through IR
+     */
+    @Override
+    public TEMP getStackAccess() {
+        return new TEMP("%sp");
+    }
+
+    /**
+     * Access the frame pointer through IR
      */
     @Override
     public TEMP getFrameAccess() {

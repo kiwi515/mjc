@@ -69,6 +69,14 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
         // Enter method scope
         check.Phase.getSymbolTable().enterScope(n.i.s);
 
+        // Register stack frame for the GC
+        frag = TranslateUtil.joinFragments(
+                frag,
+                new EVAL(new CALL(
+                        new NAME("runtime_push_stack"),
+                        Arch.get().getStackAccess(),
+                        new CONST(Arch.get().getStackFrameSize(n.locals.size())))));
+
         // Increment object aliases' ref counts
         for (final FormalDecl f : n.formals) {
             // Ignore non-reference types
@@ -101,13 +109,6 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
                 continue;
             }
 
-            // Remove locals from root list
-            frag = TranslateUtil.joinFragments(
-                    frag,
-                    new EVAL(new CALL(
-                            new NAME("runtime_root_remove"),
-                            l.i.accept(new IRExpressionVisitor()))));
-
             // Decrement ref count
             frag = TranslateUtil.joinFragments(
                     frag,
@@ -130,6 +131,11 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
                             new NAME("runtime_ref_dec"),
                             f.i.accept(new IRExpressionVisitor()))));
         }
+
+        // Pop stack frame for the GC
+        frag = TranslateUtil.joinFragments(
+                frag,
+                new EVAL(new CALL(new NAME("runtime_pop_stack"))));
 
         // Exit method scope
         check.Phase.getSymbolTable().exitScope();
