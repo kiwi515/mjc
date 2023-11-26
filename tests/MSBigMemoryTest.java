@@ -11,7 +11,7 @@ class Object {
     public int initialize() {
         bigArray = new int[5000];
         hugeArray = new int[50000];
-        massiveArray = new int[50000];
+        massiveArray = new int[500000];
         return 0;
     }
 }
