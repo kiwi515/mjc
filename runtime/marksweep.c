@@ -52,7 +52,7 @@ void marksweep_pop_stack(void) {
     // List should never be empty when popping
     assert(popped != NULL);
 
-    DEBUG_LOG("[marksweep] pop_stack %p\n");
+    DEBUG_LOG("[marksweep] pop_stack\n");
 }
 
 /**

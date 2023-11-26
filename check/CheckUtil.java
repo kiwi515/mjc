@@ -26,6 +26,17 @@ public final class CheckUtil {
     }
 
     /**
+     * Check if type is allocated on the heap
+     */
+    public static boolean typeIsHeapAlloced(final Type t) {
+        if (t == Type.THE_BOOLEAN_TYPE || t == Type.THE_INTEGER_TYPE || t == Type.THE_VOID_TYPE) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Check for type equality
      */
     public static boolean typeEquals(final Type t1, final Type t2) {

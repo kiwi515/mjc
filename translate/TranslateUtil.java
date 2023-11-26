@@ -42,7 +42,7 @@ public final class TranslateUtil {
      */
     public static boolean identIsObjRef(final Identifier ident) {
         final Type t = ident.accept(new SemanticsVisitor());
-        return CheckUtil.typeIsPrim(t) == false;
+        return CheckUtil.typeIsHeapAlloced(t);
     }
 
     /**

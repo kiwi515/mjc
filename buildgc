@@ -9,6 +9,7 @@ TEST_FILES=(
   "RcInvalidPointerTest.java"
   "DoubleDecrementTest.java"
   "CyclicGarbageTest.java"
+  "MSBigMemoryTest.java"
 )
 
 for file in "${TEST_FILES[@]}"; do
