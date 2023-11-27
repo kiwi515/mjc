@@ -29,6 +29,12 @@ typedef float f32;
 typedef double f64;
 
 typedef int BOOL;
+
+typedef enum {
+    GC_NONE,
+    GC_MARK_SWEEP,
+    GC_REF_COUNTs
+} GCType;
 #define FALSE 0
 #define TRUE 1
 

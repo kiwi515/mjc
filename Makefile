@@ -9,7 +9,7 @@ EXEC_JAR := compile.jar
 PACK_JAR := mjc.jar
 
 # Shell scripts for compiler
-SH_SCRIPTS := compile assemble buildgc debug Makefile
+SH_SCRIPTS := compile assemble buildgc debug paramtest Makefile
 
 # Tools
 JAVAC ?= javac

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+./compile "tests/RcClobberTest.java"
+./assemble "tests/RcClobberTest.s"
+./tests/RcClobberTest "--GC=GC_MARK_SWEEP"

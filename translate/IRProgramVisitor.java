@@ -40,7 +40,6 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         // Enter class + method scope
         check.Phase.getSymbolTable().enterScope(n.nameOfMainClass.s);
         check.Phase.getSymbolTable().enterScope("main");
-
         // Create new label/temp managers
         translate.Phase.resetForFunction();
         // Translate main function
