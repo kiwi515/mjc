@@ -23,13 +23,18 @@ public final class Main {
             test();
             return;
         }
-
+        System.out.println(args[0]);
         // Begin logging errors
         Logger.begin(args[0]);
         // Compile source file
         compile(args[0]);
         // Display error log
         Logger.end();
+
+        if (args.length < 2) {
+            return;
+        }
+        System.out.println(args[1]);
     }
 
     /**

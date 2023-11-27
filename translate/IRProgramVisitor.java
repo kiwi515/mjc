@@ -40,20 +40,28 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         // Enter class + method scope
         check.Phase.getSymbolTable().enterScope(n.nameOfMainClass.s);
         check.Phase.getSymbolTable().enterScope("main");
+
+        // Create a temporary Stm for set_garbage_collection_method
+        Stm setGCM = new EVAL(new CALL(new NAME("set_garbage_collection_method")));
+
         // Create new label/temp managers
         translate.Phase.resetForFunction();
+
         // Translate main function
         Stm frag = n.body.accept(new IRStatementVisitor());
+
         // Free memory allocated by the runtime
         frag = TranslateUtil.joinFragments(
                 frag,
                 new EVAL(new CALL(new NAME("runtime_cleanup"))));
 
-        // Dump heap for debug at end of execution
+        // Dump heap for debug at the end of execution
         frag = TranslateUtil.joinFragments(
                 frag,
                 new EVAL(new CALL(new NAME("runtime_debug_dumpheap"))));
 
+        // Join set_garbage_collection_method with the rest of the code
+        frag = TranslateUtil.joinFragments(setGCM, frag);
         // Dress fragment
         frag = TranslateUtil.dressFragment(frag, n.nameOfMainClass.s, "main");
         // Save fragment
