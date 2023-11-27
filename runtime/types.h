@@ -35,6 +35,7 @@ typedef int BOOL;
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
+#define ROUND_UP(x, align) (((x) + (align)-1) & (-(align)))
 #define ARRAY_LENGTH(x) (sizeof((x)) / sizeof((x)[0]))
 
 #ifndef NDEBUG

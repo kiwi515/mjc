@@ -49,6 +49,8 @@ static void search_block(void* block, u32 size);
 void marksweep_push_stack(void* frame, u32 size) {
     StackDesc* f;
 
+    DEBUG_LOG("[marksweep] push_stack %p (size:%d)\n", frame, size);
+
     // Allocate and fill out stack frame structure
     f = malloc(sizeof(StackDesc));
     assert(f != NULL);
@@ -56,8 +58,6 @@ void marksweep_push_stack(void* frame, u32 size) {
     f->size = size;
 
     linklist_append(&frame_list, f);
-
-    DEBUG_LOG("[marksweep] push_stack %p (size:%d)\n", frame, size);
 }
 
 /**
@@ -67,6 +67,8 @@ void marksweep_pop_stack(void) {
     LinkNode* popped;
     StackDesc* frame;
 
+    DEBUG_LOG("[marksweep] pop_stack\n");
+
     // List should never be empty when popping
     popped = linklist_pop(&frame_list);
     assert(popped != NULL);
@@ -74,8 +76,6 @@ void marksweep_pop_stack(void) {
     // Release memory
     frame = (StackDesc*)popped->object;
     free(frame);
-
-    DEBUG_LOG("[marksweep] pop_stack\n");
 }
 
 /**
@@ -104,8 +104,7 @@ static void search_word(u32 word) {
         maybe_header->marked = TRUE;
 
         // Also, recurse to continue through the object graph
-        DEBUG_LOG("[marksweep] search_block %p (alloced)\n",
-                  maybe_header->data);
+        DEBUG_LOG("[marksweep] search alloced block %p\n", maybe_header->data);
         search_block(maybe_header->data, maybe_header->size);
     }
 }
@@ -124,7 +123,7 @@ static void search_block(void* block, u32 size) {
 
     // Search the block for references
     for (i = 0; i < size / sizeof(u32); i++) {
-        // Intepret the current word of the frame as a possible pointer.
+        // Intepret the current word of the block as a possible pointer.
         search_word(((u32*)block)[i]);
     }
 }
@@ -135,6 +134,8 @@ static void search_block(void* block, u32 size) {
 void marksweep_mark(void) {
     StackDesc* desc;
     LinkNode* iter;
+    u32 local_first;
+    u32 local_idx;
     u32 local_num;
     int i;
 
@@ -149,24 +150,55 @@ void marksweep_mark(void) {
                   desc->size);
 
         // Search CPU local registers (compiler temporaries)
-        // (Ignore %i6/%i7)
-        for (i = 0; i < 6; i++) {
+        for (i = 0; i < ARRAY_LENGTH(desc->sp->lreg); i++) {
+            DEBUG_LOG("  sp->lreg[%d]=%08X\n", i, desc->sp->lreg[i]);
             search_word(desc->sp->lreg[i]);
         }
 
-        // Search CPU input registers (function arguments)
-        for (i = 0; i < ARRAY_LENGTH(desc->sp->ioreg); i++) {
+        // Search CPU input/output registers
+        // Ignore %i6/%i7 (SP/FP, RA)
+        for (i = 0; i < 6; i++) {
+            DEBUG_LOG("  sp->ioreg[%d]=%08X\n", i, desc->sp->lreg[i]);
             search_word(desc->sp->ioreg[i]);
         }
 
         // # of locals = frame space occupied by locals / size of a local.
         // (Every data type in MiniJava takes up one word (u32).)
         local_num = (desc->size - sizeof(SparcFrame)) / sizeof(u32);
-        DEBUG_LOG("[marksweep] local_num=%d\n", local_num);
+        DEBUG_LOG("  local_num=%d\n", local_num);
+
+        /**
+         * Stack frame is aligned to 8-bytes.
+         *
+         * Because locals are addressed from %fp (end of the stack frame),
+         * rather than from %sp (beginning of the stack frame), the local
+         * variables do not always start at sp->locals[0].
+         *
+         * This is because the stack must be padded for alignment.
+         *
+         * To get around this, we calculate the size of the locals while
+         * accounting for alignment (round UP desc->size to nearest 8).
+         *
+         * Divide this by the size of a local variable (u32), and we get the
+         * offset into sp->locals which we must begin from.
+         */
+        local_first = ROUND_UP(desc->size, 8) - sizeof(SparcFrame);
+        local_first /= sizeof(u32);
+
+        // Convert to offset (zero-indexed)
+        if (local_first > 0) {
+            local_first--;
+        }
 
         // Search stack locals
         for (i = 0; i < local_num; i++) {
-            search_word(desc->sp->locals[i]);
+            // Use offset of first local to get the real index
+            local_idx = local_first + i;
+
+            DEBUG_LOG("  sp->locals[%d (align:%d)] = %08X\n", i, local_idx,
+                      desc->sp->locals[local_idx]);
+
+            search_word(desc->sp->locals[local_idx]);
         }
     }
 }

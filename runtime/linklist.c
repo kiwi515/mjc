@@ -158,7 +158,7 @@ BOOL linklist_remove(LinkList* list, void* object) {
  * @param object Object
  * @return Whether list contains the object
  */
-BOOL linklist_contains(LinkList* list, void* object) {
+BOOL linklist_contains(const LinkList* list, void* object) {
     LinkNode* iter;
 
     assert(list != NULL);
@@ -172,4 +172,48 @@ BOOL linklist_contains(LinkList* list, void* object) {
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Dump contents of linked list to the console (for debug)
+ *
+ * @param list Linked list
+ */
+void linklist_dump(const LinkList* list) {
+    static const int columns = 6;
+
+    LinkNode* iter;
+    int i;
+
+    assert(list != NULL);
+
+    DEBUG_LOG("[linklist] dump list: %p\n", list);
+
+    // List head/tail (if possible)
+    DEBUG_LOG("    head: %p, tail: %p\n",
+              list->head != NULL ? list->head->object : NULL,
+              list->tail != NULL ? list->tail->object : NULL);
+
+    // Traverse list
+    DEBUG_LOG("    {\n");
+    for (i = 0, iter = list->head; iter != NULL; i++, iter = iter->next) {
+        // Indent beginning of row
+        if (i % columns == 0) {
+            DEBUG_LOG("        ");
+        }
+
+        // Node object
+        DEBUG_LOG("%p", iter->object);
+
+        // Comma-separate if possible
+        if (iter->next != NULL) {
+            DEBUG_LOG(",");
+        }
+
+        // End row
+        if ((i + 1) % columns == 0 || iter->next == NULL) {
+            DEBUG_LOG("\n");
+        }
+    }
+    DEBUG_LOG("    }\n");
 }

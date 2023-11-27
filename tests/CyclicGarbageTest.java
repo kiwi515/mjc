@@ -12,50 +12,40 @@ class Main {
     }
 }
 
-class CyclicThingy {
-    CyclicThingy myfriend;
+class Node {
+    Node next;
 
-    public int set(CyclicThingy other) {
-        myfriend = other;
-        return 0;
-    }
-}
-
-class Buffer {
-    int[] data;
-
-    public int init() {
-        data = new int[2000000000];
+    public int setNext(Node n) {
+        next = n;
         return 0;
     }
 }
 
 class CyclicGarbageTest {
     public int leak() {
-        CyclicThingy one;
-        CyclicThingy two;
+        Node one;
+        Node two;
+        one = new Node();
+        two = new Node();
 
-        one = new CyclicThingy();
-        two = new CyclicThingy();
-
-        one.set(two);
-        two.set(one);
-
+        one.setNext(two);
+        two.setNext(one);
         return 0;
     }
 
     public int execute() {
-        Buffer b;
-        b = new Buffer();
+        Node dummy;
+        int[] buffer;
 
-        // Leak memory through cyclic references.
-        // When this function returns, the cyclic objects will not be roots.
-        // Therefore, mark-sweep GC shall collect them.
+        // Not actually used for anything,
+        // but this should be marked by the GC.
+        dummy = new Node();
+
+        // Leak memory via cyclic reference
         this.leak();
 
-        // This function will allocate enough memory to force GC.
-        // 'Buffer b' is a root and shall be marked by the GC.
-        b.init();
+        // Force a failed allocation -> mark-sweep
+        buffer = new int[2000000000];
 
         return 0;
     }

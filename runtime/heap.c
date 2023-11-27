@@ -76,10 +76,9 @@ void* heap_alloc(u32 size) {
 
         header = malloc(internal_size);
         if (header == NULL) {
-            DEBUG_LOG(
-                "[marksweep] Unable to free enough memory for allocation.\n");
-
+            // Oh well, the best we can do now is show the heap.
             DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
+            heap_dump();
             exit(EXIT_FAILURE);
 
             return NULL;

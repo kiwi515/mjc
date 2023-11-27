@@ -29,6 +29,7 @@ void linklist_append(LinkList* list, void* object);
 BOOL linklist_remove(LinkList* list, void* object);
 LinkNode* linklist_pop(LinkList* list);
 
-BOOL linklist_contains(LinkList* list, void* object);
+BOOL linklist_contains(const LinkList* list, void* object);
+void linklist_dump(const LinkList* list);
 
 #endif
