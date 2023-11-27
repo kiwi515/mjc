@@ -86,7 +86,7 @@ void runtime_ref_dec(void* block) {
  * @brief Push a new stack frame (for mark-sweep GC)
  *
  * @param frame Stack pointer
- * @param size Frame size
+ * @param size Frame size (unaligned)
  */
 void runtime_push_stack(void* frame, u32 size) {
     if (frame != NULL) {

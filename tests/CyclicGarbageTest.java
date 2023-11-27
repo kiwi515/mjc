@@ -21,6 +21,15 @@ class CyclicThingy {
     }
 }
 
+class Buffer {
+    int[] data;
+
+    public int init() {
+        data = new int[2000000000];
+        return 0;
+    }
+}
+
 class CyclicGarbageTest {
     public int leak() {
         CyclicThingy one;
@@ -36,7 +45,18 @@ class CyclicGarbageTest {
     }
 
     public int execute() {
+        Buffer b;
+        b = new Buffer();
+
+        // Leak memory through cyclic references.
+        // When this function returns, the cyclic objects will not be roots.
+        // Therefore, mark-sweep GC shall collect them.
         this.leak();
+
+        // This function will allocate enough memory to force GC.
+        // 'Buffer b' is a root and shall be marked by the GC.
+        b.init();
+
         return 0;
     }
 }

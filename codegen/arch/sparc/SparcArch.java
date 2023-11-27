@@ -43,7 +43,7 @@ public final class SparcArch extends Arch {
         // Frame byte size
         int bytes = getWordSize() * words;
         // Double-word align
-        bytes = (bytes + 7) & (-8);
+        // bytes = (bytes + 7) & (-8);
 
         return bytes;
     }
