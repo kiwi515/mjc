@@ -8,6 +8,7 @@
 
 #ifndef MINI_JAVA_COMPILER_RUNTIME_H
 #define MINI_JAVA_COMPILER_RUNTIME_H
+#include "config.h"
 #include "types.h"
 
 /*=======================================================*/
@@ -23,14 +24,17 @@ void runtime_cleanup(void);
 void runtime_debug_dumpheap(void);
 
 /*=======================================================*/
+/*               Configuration functions                 */
+/*=======================================================*/
+void runtime_set_gctype(GCType type);
+
+/*=======================================================*/
 /*              Garbage collector functions              */
 /*=======================================================*/
 void runtime_ref_inc(void* block);
 void runtime_ref_dec(void* block);
 void runtime_push_stack(void* frame, u32 size);
 void runtime_pop_stack(void);
-void set_gc_method(u32 gcType);
-int get_gc_method(void);
 
 /*=======================================================*/
 /*                    Print functions                    */

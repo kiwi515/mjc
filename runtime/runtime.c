@@ -7,36 +7,10 @@
  */
 
 #include "runtime.h"
+#include "config.h"
 #include "heap.h"
 #include "marksweep.h"
 #include "refcount.h"
-#include "types.h"
-#include "config.h"
-
-int get_gc_method() {
-    return GARBAGE_COLLECTION_TYPE;
-}
-
-void set_gc_method(u32 gcType) {
-    GARBAGE_COLLECTION_TYPE = gcType;
-    
-    const char* gcTypeName = "NONE";
-    
-    switch (get_gc_method()) {
-        case MARK_SWEEP:
-            gcTypeName = "MARK_SWEEP";
-            break;
-        case REF_COUNT:
-            gcTypeName = "REF_COUNT";
-            break;
-        default:
-            gcTypeName = "NONE";
-            break;
-    }
-    
-    DEBUG_LOG("[gc] setting garbage collection method to %s\n", gcTypeName);
-}
-
 
 /**
  * @brief Array header
@@ -54,8 +28,7 @@ typedef struct ArrayHeader {
  * @param size Object size
  * @return void* Object memory
  */
-void* runtime_alloc_object(u32 size) { 
-    return heap_alloc(size); }
+void* runtime_alloc_object(u32 size) { return heap_alloc(size); }
 
 /**
  * @brief Allocate memory for a MiniJava array
@@ -81,8 +54,8 @@ void* runtime_alloc_array(u32 size, u32 n) {
 /**
  * @brief Cleanup any runtime-allocated memory before exiting
  */
-void runtime_cleanup(void) { 
-    if (get_gc_method() == MARK_SWEEP) {
+void runtime_cleanup(void) {
+    if (config_get_gctype() == GCType_MarkSweep) {
         marksweep_collect();
     }
 }
@@ -93,15 +66,24 @@ void runtime_cleanup(void) {
 void runtime_debug_dumpheap(void) { heap_dump(); }
 
 /**
+ * @brief Change the runtime GC type
+ *
+ * @param type New GC type
+ */
+void runtime_set_gctype(GCType type) { config_set_gctype(type); }
+
+/**
  * @brief Increment a heap allocation's reference count
  *
  * @param block Memory block
  */
 void runtime_ref_inc(void* block) {
-    if (get_gc_method() == REF_COUNT) {
-        if (block != NULL) {
-            refcount_increment(heap_get_header(block));
-        }
+    if (block == NULL) {
+        return;
+    }
+
+    if (config_get_gctype() == GCType_Refcount) {
+        refcount_increment(heap_get_header(block));
     }
 }
 
@@ -111,10 +93,12 @@ void runtime_ref_inc(void* block) {
  * @param block Memory block
  */
 void runtime_ref_dec(void* block) {
-    if (get_gc_method() == REF_COUNT) {
-        if (block != NULL) {
-            refcount_decrement(heap_get_header(block));
-        }
+    if (block == NULL) {
+        return;
+    }
+
+    if (config_get_gctype() == GCType_Refcount) {
+        refcount_decrement(heap_get_header(block));
     }
 }
 
@@ -125,19 +109,21 @@ void runtime_ref_dec(void* block) {
  * @param size Frame size (unaligned)
  */
 void runtime_push_stack(void* frame, u32 size) {
-    if (get_gc_method() == MARK_SWEEP) {
-        if (frame != NULL) {
-            marksweep_push_stack(frame, size);
-        }
+    if (frame == NULL) {
+        return;
+    }
+
+    if (config_get_gctype() == GCType_MarkSweep) {
+        marksweep_push_stack(frame, size);
     }
 }
 
 /**
  * @brief Pop the current stack frame (for mark-sweep GC)
  */
-void runtime_pop_stack(void) { 
-    if (get_gc_method() == MARK_SWEEP) {
-        marksweep_pop_stack(); 
+void runtime_pop_stack(void) {
+    if (config_get_gctype() == GCType_MarkSweep) {
+        marksweep_pop_stack();
     }
 }
 

@@ -7,10 +7,10 @@
  */
 
 #include "heap.h"
+#include "config.h"
 #include "linklist.h"
 #include "marksweep.h"
 #include "refcount.h"
-#include "types.h"
 #include "runtime.h"
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +73,7 @@ void* heap_alloc(u32 size) {
     // Allocate memory block
     header = malloc(internal_size);
 
-    if (get_gc_method() == MARK_SWEEP) {
+    if (config_get_gctype() == GCType_MarkSweep) {
         DEBUG_LOG("[heap] Running mark-and-sweep to free memory.\n");
         marksweep_collect();
         header = malloc(internal_size);
@@ -119,7 +119,7 @@ void heap_free(void* block, BOOL recurse) {
 
     // Decrement refcount of children
     if (recurse) {
-        if (get_gc_method() == REF_COUNT) {
+        if (config_get_gctype() == GCType_Refcount) {
             refcount_decr_children(header);
         }
     }

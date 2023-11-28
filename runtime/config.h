@@ -6,7 +6,24 @@
  */
 
 #ifndef MINI_JAVA_COMPILER_CONFIG_H
+#define MINI_JAVA_COMPILER_CONFIG_H
+#include "types.h"
 
-u32 GARBAGE_COLLECTION_TYPE;
+/**
+ * @brief Garbage collection type
+ */
+typedef enum {
+    GCType_None,
+    GCType_Refcount,
+    GCType_MarkSweep,
+    GCType_Copying,
+    GCType_Generational,
+    GCType_Buddy,
+
+    GCType_Max
+} GCType;
+
+GCType config_get_gctype(void);
+void config_set_gctype(GCType type);
 
 #endif

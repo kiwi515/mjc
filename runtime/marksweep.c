@@ -111,7 +111,7 @@ static void search_word(u32 word) {
 
 /**
  * @brief Search (and maybe recurse) through a memory block, looking for roots.
- * Used in the marksweep algorithmz
+ * @note Used in the marksweep algorithmz
  * @param block Memory block pointer
  * @param size Memory block size
  */
