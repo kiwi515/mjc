@@ -10,7 +10,7 @@
 #include "types.h"
 
 /**
- * @brief Garbage collection type
+ * @brief Garbage collection method
  */
 typedef enum {
     GCType_None,

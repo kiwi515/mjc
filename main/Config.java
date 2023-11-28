@@ -7,7 +7,6 @@
 
 package main;
 
-import java.util.Map;
 import java.lang.System;
 
 /**
@@ -22,46 +21,101 @@ public final class Config {
         PowerPC
     }
 
-    // Whether to run all test cases
-    private static boolean s_test = false;
+    /**
+     * Garbage collection method
+     */
+    public enum GCType {
+        None,
+        Refcount,
+        MarkSweep,
+        Copying,
+        Generational,
+        Buddy
+    }
+
     // Whether to dump compiler phase info
     private static boolean s_verbose = false;
-    // Target architecture (default SPARC)
+
+    // Target architecture (SPARC by default)
     private static ArchType s_arch = ArchType.Sparc;
 
+    // Target GC method (OFF by default)
+    private static GCType s_gcType = GCType.None;
+
+    // Path to source file
+    private static String s_srcFile = "";
+
     /**
-     * Load configuration from system properties
+     * Apply configuration from input arguments
+     * 
+     * @param args Runtime arguments
+     * @return Whether parsing was successful
      */
-    public static void initialize() {
-        /**
-         * Debug configuration
-         */
-        s_test = isPropertyDefined("test");
-        s_verbose = isPropertyDefined("verbose");
+    public static boolean initialize(final String[] args) {
+        // Sanity check
+        if (args == null) {
+            return false;
+        }
 
-        /**
-         * Target architecture
-         */
-        if (isPropertyDefined("arch")) {
-            final Map<String, ArchType> name2arch = Map.of(
-                    "sparc", ArchType.Sparc,
-                    "powerpc", ArchType.PowerPC);
+        // Process arguments
+        for (final String arg : args) {
+            // Cannot specify options after source file name
+            if (!s_srcFile.isEmpty()) {
+                return false;
+            }
 
-            final String name = System.getProperty("arch").toLowerCase();
+            final String[] tokens = arg.split("=");
 
-            if (!name2arch.containsKey(name)) {
-                Logger.logVerboseLn("Config error: Invalid architecture %s", name);
-            } else {
-                s_arch = name2arch.get(name);
+            try {
+                switch (tokens[0]) {
+                    case "--help":
+                        // Easy way to show help info
+                        return false;
+
+                    case "--verbose":
+                        s_verbose = true;
+                        break;
+
+                    case "--gc":
+                        s_gcType = str2enum(GCType.class, tokens[1]);
+                        break;
+
+                    // Assume this is specifying the source file
+                    default:
+                        s_srcFile = tokens[0];
+                        break;
+                }
+            }
+            // Some option was not given enough arguments
+            catch (final IndexOutOfBoundsException e) {
+                return false;
             }
         }
+
+        // At the very least, a source file must be specified.
+        return !s_srcFile.isEmpty();
     }
 
     /**
-     * Whether to run compiler test cases
+     * Explain options available to the user
      */
-    public static boolean isTest() {
-        return s_test;
+    public static void showHelp() {
+        final String str = String.join("\n",
+                "Usage: {compiler-jar} [option(s)] input-file",
+                "Options:",
+
+                String.format("%-20s%s", "--help",
+                        "Display this information again."),
+
+                String.format("%-20s%s", "--verbose",
+                        "Log verbose compiler information to \"/verbose.txt\"."),
+
+                String.format("%-20s%s", "--gc<type>",
+                        "Set <type> as the garbage collection method in the main function."),
+                String.format("%-20s%s", "",
+                        enum2options(GCType.class)));
+
+        System.out.println(str);
     }
 
     /**
@@ -74,21 +128,67 @@ public final class Config {
     /**
      * Get compiler target architecture
      */
-    public static ArchType getTargetArch() {
+    public static ArchType getArchType() {
         return s_arch;
     }
 
     /**
-     * Check if a system property with the given name is defined
-     * 
-     * @param name Property name
+     * Get runtime GC method
      */
-    private static boolean isPropertyDefined(final String name) {
-        try {
-            final String value = System.getProperty(name);
-            return value != null;
-        } catch (Exception e) {
-            return false;
+    public static GCType getGcType() {
+        return s_gcType;
+    }
+
+    /**
+     * Get source code file path
+     */
+    public static String getSrcFilePath() {
+        return s_srcFile;
+    }
+
+    /**
+     * Attempt to convert string to an enum value (case *insensitive*).
+     * If key is invalid, the first enum value is chosen.
+     * 
+     * @param <T> Enum type
+     * @param e   Enum class
+     * @param x   String key
+     * @return Enum value
+     */
+    public static <T extends Enum<T>> T str2enum(final Class<T> e, final String x) {
+        // Compare against all enum values (case insensitive)
+        for (final T value : e.getEnumConstants()) {
+            if (value.name().equalsIgnoreCase(x)) {
+                return value;
+            }
         }
+
+        // Default to first enum value
+        final T fallback = e.getEnumConstants()[0];
+
+        Logger.logVerboseLn("Config error: \"%s\" cannot be specified as %s. Defaulting to \"%s\"...",
+                x, e.getSimpleName(), fallback.name());
+
+        return fallback;
+    }
+
+    /**
+     * Creates a string for the help menu which shows all possible enum options.
+     * 
+     * @param <T> Enum type
+     * @param e   Enum class
+     * @return "|" delimted string of enum values
+     */
+    private static <T extends Enum<T>> String enum2options(final Class<T> e) {
+        String options = "";
+
+        // Concatenate options just|like|this
+        for (final T value : e.getEnumConstants()) {
+            options = options.isEmpty() ? value.name()
+                    : String.join("|", options, value.name());
+        }
+
+        // Enclose in parenthesis
+        return String.format("(%s)", options);
     }
 }

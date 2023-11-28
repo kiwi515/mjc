@@ -9,53 +9,22 @@ package main;
 
 public final class Main {
     public static void main(final String[] args) {
-        int gcType = 0;
-        // Check argument count
-        if (args.length < 1) {
+        // Inspect flags
+        if (!Config.initialize(args)) {
+            Config.showHelp();
             return;
         }
-        if (args.length >= 2) {
-            String gcTypeArg = args[1];
-            switch (gcTypeArg) {
-                case "NONE":
-                    gcType = 0;
-                    break;
-                case "REF_COUNT":
-                    gcType = 1;
-                    break;
-                case "MARK_SWEEP":
-                    gcType = 2;
-                    break;
-                case "COPYING":
-                    gcType = 3;
-                    break;
-                case "GENERATIONAL":
-                    gcType = 4;
-                    break;
-                case "BUDDY":
-                    gcType = 5;
-                    break;
-                default:
-                    System.out.println("Invalid GC Type. Defaulting to NONE.");
-                    gcType = 0;
-                    break;
-            }
-        }
-        // Get system properties
-        Config.initialize();
+
+        // Initialize architecture
         Arch.initialize();
 
-        // Run test cases if specified to do so
-        if (Config.isTest()) {
-            test(gcType);
-            return;
-        }
-        System.out.println(args[0]);
-        // Begin logging errors
-        Logger.begin(args[0]);
+        // Path to source file
+        final String src = Config.getSrcFilePath();
+        System.out.println(src);
+
         // Compile source file
-        compile(args[0], gcType);
-        // Display error log
+        Logger.begin(src);
+        compile(src);
         Logger.end();
     }
 
@@ -64,7 +33,7 @@ public final class Main {
      * 
      * @param fileName Source file name
      */
-    private static void compile(final String fileName, final int gcType) {
+    private static void compile(final String fileName) {
         /**
          * Convert source file path to assembly file path.
          */
@@ -86,7 +55,7 @@ public final class Main {
             }
 
             // Compiler translate phase
-            if (!translate.Phase.execute(gcType)) {
+            if (!translate.Phase.execute()) {
                 return;
             }
 
@@ -111,35 +80,6 @@ public final class Main {
             }
         } catch (final Exception e) {
             Logger.logVerboseLn(e.toString());
-        }
-    }
-
-    /**
-     * Test the compiler against Appel's testcases (and my own)
-     */
-    private static void test(final int gcType) {
-        final String[] tests = {
-                // Appel
-                "tests/BinarySearch.java",
-                "tests/BinaryTree.java",
-                "tests/BubbleSort.java",
-                "tests/Factorial.java",
-                "tests/LinearSearch.java",
-                "tests/LinkedList.java",
-                "tests/QuickSort.java",
-                "tests/TreeVisitor.java",
-                // Custom
-                "tests/Test.java",
-                "tests/IROptimizerTest.java",
-                "tests/ArrayTest.java",
-                "tests/DefUseTest.java",
-                "tests/RefCountTest.java"
-        };
-
-        for (final String test : tests) {
-            Logger.begin(test);
-            compile(test, gcType);
-            Logger.end();
         }
     }
 }

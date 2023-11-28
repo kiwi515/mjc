@@ -26,13 +26,13 @@ public abstract class Arch {
      * Setup target architecture based on the compiler configuration
      */
     public static void initialize() {
-        switch (Config.getTargetArch()) {
+        switch (Config.getArchType()) {
             case Sparc:
                 s_instance = new SparcArch();
                 break;
             default:
                 Logger.logVerboseLn("Unimplemented architecture: %s",
-                        Config.getTargetArch().name());
+                        Config.getArchType().name());
         }
     }
 

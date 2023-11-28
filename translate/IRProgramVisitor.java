@@ -7,6 +7,7 @@
 
 package translate;
 
+import main.Config;
 import main.Logger;
 
 import syntax.*;
@@ -16,12 +17,6 @@ import tree.*;
  * Visitor which builds a list of IR fragments from a program
  */
 public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
-    private final int gcType;
-
-    public IRProgramVisitor(int gcType) {
-        this.gcType = gcType;
-    }
-
     /**
      * Visit program
      */
@@ -55,7 +50,8 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
 
         // Set GC type in the runtime
         frag = TranslateUtil.joinFragments(
-                new EVAL(new CALL(new NAME("config_set_gctype"), new CONST(this.gcType))),
+                new EVAL(new CALL(new NAME("config_set_gctype"),
+                        new CONST(Config.getGcType().ordinal()))),
                 frag);
 
         // Free memory allocated by the runtime
