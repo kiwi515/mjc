@@ -11,10 +11,38 @@
 #include "marksweep.h"
 #include "refcount.h"
 #include "types.h"
+#include "config.h"
 
-void set_garbage_collection_method(u32 gcType) {
-    DEBUG_LOG("[gc] setting garbage collection method to %d\n", gcType);
+int get_gc_method() {
+    return GARBAGE_COLLECTION_TYPE;
 }
+
+void set_gc_method(u32 gcType) {
+    GARBAGE_COLLECTION_TYPE = gcType;
+    
+    const char* gcTypeName = NULL;
+    
+    switch (get_gc_method()) {
+        case NONE:
+            gcTypeName = "NONE";
+            break;
+        case MARK_SWEEP:
+            gcTypeName = "MARK_SWEEP";
+            break;
+        case REF_COUNT:
+            gcTypeName = "REF_COUNT";
+            break;
+        case COPYING:
+            gcTypeName = "REF_COUNT";
+            break;
+        default:
+            gcTypeName = "UNKNOWN";
+            break;
+    }
+    
+    DEBUG_LOG("[gc] setting garbage collection method to %s\n", gcTypeName);
+}
+
 
 /**
  * @brief Array header
@@ -32,7 +60,8 @@ typedef struct ArrayHeader {
  * @param size Object size
  * @return void* Object memory
  */
-void* runtime_alloc_object(u32 size) { return heap_alloc(size); }
+void* runtime_alloc_object(u32 size) { 
+    return heap_alloc(size); }
 
 /**
  * @brief Allocate memory for a MiniJava array
@@ -58,7 +87,11 @@ void* runtime_alloc_array(u32 size, u32 n) {
 /**
  * @brief Cleanup any runtime-allocated memory before exiting
  */
-void runtime_cleanup(void) { marksweep_collect(); }
+void runtime_cleanup(void) { 
+    if (get_gc_method() == MARK_SWEEP) {
+        marksweep_collect();
+    }
+}
 
 /**
  * @brief Dump contents of the heap (for debug)
@@ -71,8 +104,10 @@ void runtime_debug_dumpheap(void) { heap_dump(); }
  * @param block Memory block
  */
 void runtime_ref_inc(void* block) {
-    if (block != NULL) {
-        refcount_increment(heap_get_header(block));
+    if (get_gc_method() == REF_COUNT) {
+        if (block != NULL) {
+            refcount_increment(heap_get_header(block));
+        }
     }
 }
 
@@ -82,8 +117,10 @@ void runtime_ref_inc(void* block) {
  * @param block Memory block
  */
 void runtime_ref_dec(void* block) {
-    if (block != NULL) {
-        refcount_decrement(heap_get_header(block));
+    if (get_gc_method() == REF_COUNT) {
+        if (block != NULL) {
+            refcount_decrement(heap_get_header(block));
+        }
     }
 }
 
@@ -94,15 +131,21 @@ void runtime_ref_dec(void* block) {
  * @param size Frame size
  */
 void runtime_push_stack(void* frame, u32 size) {
-    if (frame != NULL) {
-        marksweep_push_stack(frame, size);
+    if (get_gc_method() == MARK_SWEEP) {
+        if (frame != NULL) {
+            marksweep_push_stack(frame, size);
+        }
     }
 }
 
 /**
  * @brief Pop the current stack frame (for mark-sweep GC)
  */
-void runtime_pop_stack(void) { marksweep_pop_stack(); }
+void runtime_pop_stack(void) { 
+    if (get_gc_method() == MARK_SWEEP) {
+        marksweep_pop_stack(); 
+    }
+}
 
 /**
  * @brief Print integer value to the console

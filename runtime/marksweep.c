@@ -57,7 +57,7 @@ void marksweep_pop_stack(void) {
 
 /**
  * @brief Search (and maybe recurse) through a memory block, looking for roots.
- *
+ * Used in the marksweep algorithmz
  * @param block Memory block pointer
  * @param size Memory block size
  */

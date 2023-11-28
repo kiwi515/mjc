@@ -15,7 +15,9 @@ public final class Main {
             return;
         }
         if (args.length >= 2) {
-
+            if (args[1].equals("NONE")) {
+                gcType = 0;
+            }
             if (args[1].equals("REF_COUNT")) {
                 gcType = 1;
             }

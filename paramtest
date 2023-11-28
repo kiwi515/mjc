@@ -1,5 +1,5 @@
 #!/bin/bash
 
-./compile "tests/RcClobberTest.java" "REF_COUNT"
-./assemble "tests/RcClobberTest.s"
-./tests/RcClobberTest
+./compile "tests/$1.java" $2
+./assemble "tests/$1.s"
+./tests/$1
