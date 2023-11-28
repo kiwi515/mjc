@@ -29,6 +29,16 @@ typedef float f32;
 typedef double f64;
 
 typedef int BOOL;
+
+typedef enum {
+    NONE,
+    REF_COUNT,
+    MARK_SWEEP,
+    COPYING,
+    GENERATIONAL,
+    BUDDY
+} GCType;
+
 #define FALSE 0
 #define TRUE 1
 

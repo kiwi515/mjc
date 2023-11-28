@@ -1,0 +1,3 @@
+./compile "tests/$1.java" $2
+./assemble "tests/$1.s"
+./tests/$1

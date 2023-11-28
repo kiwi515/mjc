@@ -9,25 +9,52 @@ package main;
 
 public final class Main {
     public static void main(final String[] args) {
+        int gcType = 0;
         // Check argument count
         if (args.length < 1) {
             return;
         }
-
+        if (args.length >= 2) {
+            String gcTypeArg = args[1];
+            switch (gcTypeArg) {
+                case "NONE":
+                    gcType = 0;
+                    break;
+                case "REF_COUNT":
+                    gcType = 1;
+                    break;
+                case "MARK_SWEEP":
+                    gcType = 2;
+                    break;
+                case "COPYING":
+                    gcType = 3;
+                    break;
+                case "GENERATIONAL":
+                    gcType = 4;
+                    break;
+                case "BUDDY":
+                    gcType = 5;
+                    break;
+                default:
+                    System.out.println("Invalid GC Type. Defaulting to NONE.");
+                    gcType = 0;
+                    break;
+            }
+        }
         // Get system properties
         Config.initialize();
         Arch.initialize();
 
         // Run test cases if specified to do so
         if (Config.isTest()) {
-            test();
+            test(gcType);
             return;
         }
-
+        System.out.println(args[0]);
         // Begin logging errors
         Logger.begin(args[0]);
         // Compile source file
-        compile(args[0]);
+        compile(args[0], gcType);
         // Display error log
         Logger.end();
     }
@@ -37,7 +64,7 @@ public final class Main {
      * 
      * @param fileName Source file name
      */
-    private static void compile(final String fileName) {
+    private static void compile(final String fileName, final int gcType) {
         /**
          * Convert source file path to assembly file path.
          */
@@ -59,7 +86,7 @@ public final class Main {
             }
 
             // Compiler translate phase
-            if (!translate.Phase.execute()) {
+            if (!translate.Phase.execute(gcType)) {
                 return;
             }
 
@@ -90,7 +117,7 @@ public final class Main {
     /**
      * Test the compiler against Appel's testcases (and my own)
      */
-    private static void test() {
+    private static void test(final int gcType) {
         final String[] tests = {
                 // Appel
                 "tests/BinarySearch.java",
@@ -111,7 +138,7 @@ public final class Main {
 
         for (final String test : tests) {
             Logger.begin(test);
-            compile(test);
+            compile(test, gcType);
             Logger.end();
         }
     }

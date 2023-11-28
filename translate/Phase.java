@@ -43,7 +43,7 @@ public final class Phase {
      * 
      * @return Success
      */
-    public static boolean execute() {
+    public static boolean execute(int gcType) {
         // Reset state (in case phase is being run again)
         initialize();
 
@@ -52,7 +52,7 @@ public final class Phase {
          */
 
         // Generate program IR
-        parse.Phase.getAstRoot().accept(new IRProgramVisitor());
+        parse.Phase.getAstRoot().accept(new IRProgramVisitor(gcType));
 
         // Pretty-print IR (verbose output)
         for (final IRFragment frag : s_fragments) {

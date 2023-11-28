@@ -16,6 +16,12 @@ import tree.*;
  * Visitor which builds a list of IR fragments from a program
  */
 public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
+    private final int gcType;
+    
+    public IRProgramVisitor(int gcType) {
+        this.gcType = gcType;
+    }
+    
     /**
      * Visit program
      */
@@ -41,20 +47,27 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         check.Phase.getSymbolTable().enterScope(n.nameOfMainClass.s);
         check.Phase.getSymbolTable().enterScope("main");
 
+        // Create a temporary Stm for set_gc_method
+        Stm setGCM = new EVAL(new CALL(new NAME("set_gc_method"), new CONST(this.gcType)));
+
         // Create new label/temp managers
         translate.Phase.resetForFunction();
+
         // Translate main function
         Stm frag = n.body.accept(new IRStatementVisitor());
+
         // Free memory allocated by the runtime
         frag = TranslateUtil.joinFragments(
                 frag,
                 new EVAL(new CALL(new NAME("runtime_cleanup"))));
 
-        // Dump heap for debug at end of execution
+        // Dump heap for debug at the end of execution
         frag = TranslateUtil.joinFragments(
                 frag,
                 new EVAL(new CALL(new NAME("runtime_debug_dumpheap"))));
 
+        // Join set_garbage_collection_method with the rest of the code
+        frag = TranslateUtil.joinFragments(setGCM, frag);
         // Dress fragment
         frag = TranslateUtil.dressFragment(frag, n.nameOfMainClass.s, "main");
         // Save fragment

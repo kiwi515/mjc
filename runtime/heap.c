@@ -10,6 +10,8 @@
 #include "linklist.h"
 #include "marksweep.h"
 #include "refcount.h"
+#include "types.h"
+#include "runtime.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -70,19 +72,18 @@ void* heap_alloc(u32 size) {
 
     // Allocate memory block
     header = malloc(internal_size);
-    if (header == NULL) {
+
+    if (get_gc_method() == MARK_SWEEP) {
         DEBUG_LOG("[heap] Running mark-and-sweep to free memory.\n");
         marksweep_collect();
-
         header = malloc(internal_size);
-        if (header == NULL) {
-            // Oh well, the best we can do now is show the heap.
-            DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
-            heap_dump();
-            exit(EXIT_FAILURE);
+    }
+    if (header == NULL) {
 
-            return NULL;
-        }
+        DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
+        exit(EXIT_FAILURE);
+
+        return NULL;
     }
 
     DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size,
@@ -118,7 +119,9 @@ void heap_free(void* block, BOOL recurse) {
 
     // Decrement refcount of children
     if (recurse) {
-        refcount_decr_children(header);
+        if (get_gc_method() == REF_COUNT) {
+            refcount_decr_children(header);
+        }
     }
 
     // Remove from runtime list
