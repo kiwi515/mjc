@@ -12,12 +12,8 @@
 #include "refcount.h"
 #include "types.h"
 
-void main(int argc, char *argv[]) {
-    return 0;
-}
-
-void set_garbage_collection_method() {
-    DEBUG_LOG("[gc] setting garbage collection method!\n");
+void set_garbage_collection_method(u32 gcType) {
+    DEBUG_LOG("[gc] setting garbage collection method to %d\n", gcType);
 }
 
 /**

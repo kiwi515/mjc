@@ -9,32 +9,39 @@ package main;
 
 public final class Main {
     public static void main(final String[] args) {
+        int gcType = 0;
         // Check argument count
         if (args.length < 1) {
             return;
         }
+        if (args.length >= 2) {
 
+            if (args[1].equals("REF_COUNT")) {
+                gcType = 1;
+            }
+            if (args[1].equals("MARK_SWEEP")) {
+                gcType = 2;
+            }
+            if (args[1].equals("COPYING")) {
+                gcType = 3;
+            }
+        }
         // Get system properties
         Config.initialize();
         Arch.initialize();
 
         // Run test cases if specified to do so
         if (Config.isTest()) {
-            test();
+            test(gcType);
             return;
         }
         System.out.println(args[0]);
         // Begin logging errors
         Logger.begin(args[0]);
         // Compile source file
-        compile(args[0]);
+        compile(args[0], gcType);
         // Display error log
         Logger.end();
-
-        if (args.length < 2) {
-            return;
-        }
-        System.out.println(args[1]);
     }
 
     /**
@@ -42,7 +49,7 @@ public final class Main {
      * 
      * @param fileName Source file name
      */
-    private static void compile(final String fileName) {
+    private static void compile(final String fileName, final int gcType) {
         /**
          * Convert source file path to assembly file path.
          */
@@ -64,7 +71,7 @@ public final class Main {
             }
 
             // Compiler translate phase
-            if (!translate.Phase.execute()) {
+            if (!translate.Phase.execute(gcType)) {
                 return;
             }
 
@@ -95,7 +102,7 @@ public final class Main {
     /**
      * Test the compiler against Appel's testcases (and my own)
      */
-    private static void test() {
+    private static void test(final int gcType) {
         final String[] tests = {
                 // Appel
                 "tests/BinarySearch.java",
@@ -116,7 +123,7 @@ public final class Main {
 
         for (final String test : tests) {
             Logger.begin(test);
-            compile(test);
+            compile(test, gcType);
             Logger.end();
         }
     }

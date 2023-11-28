@@ -16,6 +16,12 @@ import tree.*;
  * Visitor which builds a list of IR fragments from a program
  */
 public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
+    private final int gcType;
+    
+    public IRProgramVisitor(int gcType) {
+        this.gcType = gcType;
+    }
+    
     /**
      * Visit program
      */
@@ -42,7 +48,7 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         check.Phase.getSymbolTable().enterScope("main");
 
         // Create a temporary Stm for set_garbage_collection_method
-        Stm setGCM = new EVAL(new CALL(new NAME("set_garbage_collection_method")));
+        Stm setGCM = new EVAL(new CALL(new NAME("set_garbage_collection_method"), new CONST(this.gcType)));
 
         // Create new label/temp managers
         translate.Phase.resetForFunction();

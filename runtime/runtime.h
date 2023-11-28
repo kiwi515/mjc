@@ -29,7 +29,7 @@ void runtime_ref_inc(void* block);
 void runtime_ref_dec(void* block);
 void runtime_push_stack(void* frame, u32 size);
 void runtime_pop_stack(void);
-void set_garbage_collection_method(void);
+void set_garbage_collection_method(u32 gcType);
 
 /*=======================================================*/
 /*                    Print functions                    */

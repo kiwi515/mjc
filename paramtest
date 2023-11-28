@@ -1,5 +1,5 @@
 #!/bin/bash
 
-./compile "tests/RcClobberTest.java"
+./compile "tests/RcClobberTest.java" "REF_COUNT"
 ./assemble "tests/RcClobberTest.s"
-./tests/RcClobberTest "--GC=GC_MARK_SWEEP"
+./tests/RcClobberTest
