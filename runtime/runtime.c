@@ -20,23 +20,17 @@ int get_gc_method() {
 void set_gc_method(u32 gcType) {
     GARBAGE_COLLECTION_TYPE = gcType;
     
-    const char* gcTypeName = NULL;
+    const char* gcTypeName = "NONE";
     
     switch (get_gc_method()) {
-        case NONE:
-            gcTypeName = "NONE";
-            break;
         case MARK_SWEEP:
             gcTypeName = "MARK_SWEEP";
             break;
         case REF_COUNT:
             gcTypeName = "REF_COUNT";
             break;
-        case COPYING:
-            gcTypeName = "REF_COUNT";
-            break;
         default:
-            gcTypeName = "UNKNOWN";
+            gcTypeName = "NONE";
             break;
     }
     
