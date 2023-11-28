@@ -34,7 +34,9 @@ typedef enum {
     NONE,
     REF_COUNT,
     MARK_SWEEP,
-    COPYING
+    COPYING,
+    GENERATIONAL,
+    BUDDY
 } GCType;
 
 #define FALSE 0

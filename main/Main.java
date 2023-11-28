@@ -15,17 +15,30 @@ public final class Main {
             return;
         }
         if (args.length >= 2) {
-            if (args[1].equals("NONE")) {
-                gcType = 0;
-            }
-            if (args[1].equals("REF_COUNT")) {
-                gcType = 1;
-            }
-            if (args[1].equals("MARK_SWEEP")) {
-                gcType = 2;
-            }
-            if (args[1].equals("COPYING")) {
-                gcType = 3;
+            String gcTypeArg = args[1];
+            switch (gcTypeArg) {
+                case "NONE":
+                    gcType = 0;
+                    break;
+                case "REF_COUNT":
+                    gcType = 1;
+                    break;
+                case "MARK_SWEEP":
+                    gcType = 2;
+                    break;
+                case "COPYING":
+                    gcType = 3;
+                    break;
+                case "GENERATIONAL":
+                    gcType = 4;
+                    break;
+                case "BUDDY":
+                    gcType = 5;
+                    break;
+                default:
+                    System.out.println("Invalid GC Type. Defaulting to NONE.");
+                    gcType = 0;
+                    break;
             }
         }
         // Get system properties

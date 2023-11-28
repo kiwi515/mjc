@@ -47,7 +47,7 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         check.Phase.getSymbolTable().enterScope(n.nameOfMainClass.s);
         check.Phase.getSymbolTable().enterScope("main");
 
-        // Create a temporary Stm for set_garbage_collection_method
+        // Create a temporary Stm for set_gc_method
         Stm setGCM = new EVAL(new CALL(new NAME("set_gc_method"), new CONST(this.gcType)));
 
         // Create new label/temp managers
