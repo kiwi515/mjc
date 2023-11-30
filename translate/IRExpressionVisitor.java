@@ -8,6 +8,9 @@
 package translate;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import check.*;
 import main.Arch;
@@ -21,6 +24,13 @@ import tree.*;
  * Visitor which builds an IR expression from an AST node
  */
 public final class IRExpressionVisitor implements SyntaxTreeVisitor<Exp> {
+    /**
+     * Compiler intrinsic functions (not including print).
+     * Map MiniJava "System" class methods -> C runtime functions
+     */
+    private static final HashMap<String, String> s_intrinsics = new HashMap<String, String>(
+            Map.of("gc", "runtime_do_gc_cycle"));
+
     /**
      * Visit program
      */
@@ -391,6 +401,32 @@ public final class IRExpressionVisitor implements SyntaxTreeVisitor<Exp> {
     public Exp visit(final Call n) {
         String cls = "DUMMY";
         final String method = n.i.s;
+
+        /**
+         * Catch intrinsic functions
+         */
+        if (n.e instanceof IdentifierExp) {
+            final IdentifierExp ie = (IdentifierExp) n.e;
+
+            if (ie.s == "System") {
+                // Convert to C runtime function name
+                final String runtimeFunc = s_intrinsics.get(method);
+
+                // Validate that this is a real method
+                if (runtimeFunc == null) {
+                    Logger.addError("Translate error: Unknown intrinsic function: %s", method);
+                    return new CALL(new NAME("DUMMY"));
+                }
+
+                // Call args
+                final ArrayList<Exp> args = new ArrayList<>();
+                for (final Expression e : n.el) {
+                    args.add(e.accept(this));
+                }
+
+                return new CALL(new NAME(runtimeFunc), args);
+            }
+        }
 
         /**
          * Determine class name of method by inspecting the callee object

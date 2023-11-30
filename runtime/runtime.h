@@ -35,6 +35,7 @@ void runtime_ref_inc(void* block);
 void runtime_ref_dec(void* block);
 void runtime_push_stack(void* frame, u32 size);
 void runtime_pop_stack(void);
+void runtime_do_gc_cycle(void);
 
 /*=======================================================*/
 /*                    Print functions                    */

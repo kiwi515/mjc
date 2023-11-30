@@ -547,9 +547,9 @@ Statement Statement() : {
         s = Block()
         | s = If()
         | s = While()
-        | s = Print()
         | LOOKAHEAD(2) s = Assign()
         | LOOKAHEAD(2) s = ArrayAssign()
+        | s = Print()
         | s = VoidCall()
     )
 

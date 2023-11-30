@@ -73,17 +73,19 @@ void* heap_alloc(u32 size) {
     // Allocate memory block
     header = malloc(internal_size);
 
-    if (config_get_gctype() == GCType_MarkSweep) {
-        DEBUG_LOG("[heap] Running mark-and-sweep to free memory.\n");
-        marksweep_collect();
-        header = malloc(internal_size);
-    }
+    // If allocation fails, force a GC cycle
     if (header == NULL) {
+        DEBUG_LOG("[heap] running a gc cycle to free memory\n");
+        runtime_do_gc_cycle();
 
-        DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
-        exit(EXIT_FAILURE);
-
-        return NULL;
+        // Try allocation one last time
+        header = malloc(internal_size);
+        if (header == NULL) {
+            // Out of memory, terminate the program
+            DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
+            exit(EXIT_FAILURE);
+            return NULL;
+        }
     }
 
     DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size,

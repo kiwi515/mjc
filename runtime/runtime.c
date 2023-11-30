@@ -55,9 +55,7 @@ void* runtime_alloc_array(u32 size, u32 n) {
  * @brief Cleanup any runtime-allocated memory before exiting
  */
 void runtime_cleanup(void) {
-    if (config_get_gctype() == GCType_MarkSweep) {
-        marksweep_collect();
-    }
+    // TODO
 }
 
 /**
@@ -124,6 +122,26 @@ void runtime_push_stack(void* frame, u32 size) {
 void runtime_pop_stack(void) {
     if (config_get_gctype() == GCType_MarkSweep) {
         marksweep_pop_stack();
+    }
+}
+
+/**
+ * @brief Force a garbage collection cycle
+ */
+void runtime_do_gc_cycle(void) {
+    const GCType t = config_get_gctype();
+
+    switch (t) {
+    case GCType_None:
+    case GCType_Refcount:
+        DEBUG_LOG("[runtime] Cannot force GC cycle on None/Refcount\n");
+        break;
+    case GCType_MarkSweep:
+        marksweep_collect();
+        break;
+    default:
+        DEBUG_LOG("[runtime] Unimplemented GC cycle: type=%d\n", t);
+        break;
     }
 }
 

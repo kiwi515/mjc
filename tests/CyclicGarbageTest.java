@@ -34,18 +34,16 @@ class CyclicGarbageTest {
     }
 
     public int execute() {
-        Node dummy;
-        int[] buffer;
+        Node markme;
 
-        // Not actually used for anything,
-        // but this should be marked by the GC.
-        dummy = new Node();
+        // Dummy root variable. Should be marked by the GC.
+        markme = new Node();
 
-        // Leak memory via cyclic reference
+        // Leak memory via cyclic reference.
         this.leak();
 
-        // Force a failed allocation -> mark-sweep
-        buffer = new int[2000000000];
+        // Attempt to reclaim memory.
+        System.gc();
 
         return 0;
     }
