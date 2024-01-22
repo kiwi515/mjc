@@ -33,8 +33,8 @@ GCType config_get_gctype(void) { return config.gc_type; }
  * @brief Set the runtime GC type
  */
 void config_set_gctype(GCType type) {
-    static const char* type2str[] = {"None",    "Refcount",     "MarkSweep",
-                                     "Copying", "Generational", "Buddy"};
+    static const char* type2str[] = {"None", "Refcount", "MarkSweep", "Copying",
+                                     "Generational"};
 
     assert(type < GCType_Max);
     DEBUG_LOG("[config] setting gctype to %s\n", type2str[type]);

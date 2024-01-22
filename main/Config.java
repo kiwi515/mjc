@@ -30,7 +30,15 @@ public final class Config {
         MarkSweep,
         Copying,
         Generational,
-        Buddy
+    }
+
+    /**
+     * Optimization level
+     */
+    public enum OptLevel {
+        O0,
+        O1,
+        O2
     }
 
     // Whether to dump compiler phase info
@@ -41,6 +49,9 @@ public final class Config {
 
     // Target GC method (OFF by default)
     private static GCType s_gcType = GCType.None;
+
+    // Target optimization level (O0/no opt by default)
+    private static OptLevel s_optLevel = OptLevel.O0;
 
     // Path to source file
     private static String s_srcFile = "";
@@ -69,7 +80,7 @@ public final class Config {
             try {
                 switch (tokens[0]) {
                     case "--help":
-                        // Easy way to show help info
+                        // Force show usage
                         return false;
 
                     case "--verbose":
@@ -78,6 +89,10 @@ public final class Config {
 
                     case "--gc":
                         s_gcType = str2enum(GCType.class, tokens[1]);
+                        break;
+
+                    case "--opt":
+                        s_optLevel = str2enum(OptLevel.class, tokens[1]);
                         break;
 
                     // Assume this is specifying the source file
@@ -113,7 +128,12 @@ public final class Config {
                 String.format("%-20s%s", "--gc=<type>",
                         "Set <type> as the garbage collection method in the main function."),
                 String.format("%-20s%s", "",
-                        enum2options(GCType.class)));
+                        enum2options(GCType.class)),
+
+                String.format("%-20s%s", "--opt=<level>",
+                        "Set <level> as the program optimization level."),
+                String.format("%-20s%s", "",
+                        enum2options(OptLevel.class)));
 
         System.out.println(str);
     }
@@ -137,6 +157,13 @@ public final class Config {
      */
     public static GCType getGcType() {
         return s_gcType;
+    }
+
+    /**
+     * Get optimization level
+     */
+    public static OptLevel getOptLevel() {
+        return s_optLevel;
     }
 
     /**

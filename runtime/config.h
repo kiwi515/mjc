@@ -18,7 +18,6 @@ typedef enum {
     GCType_MarkSweep,
     GCType_Copying,
     GCType_Generational,
-    GCType_Buddy,
 
     GCType_Max
 } GCType;
