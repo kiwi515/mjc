@@ -83,6 +83,8 @@ perms:
 
 # Upload to Jabberwocky container
 jab: compiler
+# Start container if we haven't yet
+	$(JAB) start $(JAB_CT)
 # Remove old builds
 	$(JAB) run $(JAB_CT) rm -rf *
 # Send everything to container
