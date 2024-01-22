@@ -110,7 +110,7 @@ public final class Config {
                 String.format("%-20s%s", "--verbose",
                         "Log verbose compiler information to \"/verbose.txt\"."),
 
-                String.format("%-20s%s", "--gc<type>",
+                String.format("%-20s%s", "--gc=<type>",
                         "Set <type> as the garbage collection method in the main function."),
                 String.format("%-20s%s", "",
                         enum2options(GCType.class)));
