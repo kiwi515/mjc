@@ -28,7 +28,9 @@ typedef struct ArrayHeader {
  * @param size Object size
  * @return void* Object memory
  */
-void* runtime_alloc_object(u32 size) { return heap_alloc(size); }
+void* runtime_alloc_object(u32 size) {
+    return heap_alloc(size);
+}
 
 /**
  * @brief Allocate memory for a MiniJava array
@@ -61,14 +63,18 @@ void runtime_cleanup(void) {
 /**
  * @brief Dump contents of the heap (for debug)
  */
-void runtime_debug_dumpheap(void) { heap_dump(); }
+void runtime_debug_dumpheap(void) {
+    heap_dump();
+}
 
 /**
  * @brief Change the runtime GC type
  *
  * @param type New GC type
  */
-void runtime_set_gctype(GCType type) { config_set_gctype(type); }
+void runtime_set_gctype(GCType type) {
+    config_set_gctype(type);
+}
 
 /**
  * @brief Increment a heap allocation's reference count
@@ -136,12 +142,8 @@ void runtime_do_gc_cycle(void) {
     case GCType_Refcount:
         DEBUG_LOG("[runtime] Cannot force GC cycle on None/Refcount\n");
         break;
-    case GCType_MarkSweep:
-        marksweep_collect();
-        break;
-    default:
-        DEBUG_LOG("[runtime] Unimplemented GC cycle: type=%d\n", t);
-        break;
+    case GCType_MarkSweep: marksweep_collect(); break;
+    default:               DEBUG_LOG("[runtime] Unimplemented GC cycle: type=%d\n", t); break;
     }
 }
 
@@ -150,7 +152,9 @@ void runtime_do_gc_cycle(void) {
  *
  * @param value Integer value
  */
-void runtime_print_integer(s32 value) { printf("%d\n", value); }
+void runtime_print_integer(s32 value) {
+    printf("%d\n", value);
+}
 
 /**
  * @brief Print boolean value to the console

@@ -11,6 +11,9 @@
 #include "linklist.h"
 #include "types.h"
 
+// Shortcut for object allocation
+#define OBJ_NEW(T) ((T*)heap_alloc(sizeof(T)))
+
 /**
  * @brief Heap block header
  */

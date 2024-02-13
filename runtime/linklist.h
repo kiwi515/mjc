@@ -10,7 +10,7 @@
 #define MINI_JAVA_COMPILER_LINKLIST_H
 #include "types.h"
 
-// Intrusive, doubly-linked list of heap headers
+// Doubly-linked list
 typedef struct LinkList {
     struct LinkNode* head;
     struct LinkNode* tail;

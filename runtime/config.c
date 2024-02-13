@@ -27,7 +27,9 @@ static Config config = {
 /**
  * @brief Get the runtime GC type
  */
-GCType config_get_gctype(void) { return config.gc_type; }
+GCType config_get_gctype(void) {
+    return config.gc_type;
+}
 
 /**
  * @brief Set the runtime GC type
