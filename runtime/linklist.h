@@ -9,6 +9,7 @@
 #ifndef MINI_JAVA_COMPILER_LINKLIST_H
 #define MINI_JAVA_COMPILER_LINKLIST_H
 #include "types.h"
+#include <assert.h>
 
 // Doubly-linked list
 typedef struct LinkList {
@@ -32,11 +33,38 @@ LinkNode* linklist_pop(LinkList* list);
 BOOL linklist_contains(const LinkList* list, void* object);
 void linklist_dump(const LinkList* list);
 
+/**
+ * @brief For-each loop macro
+ * @note The current element can be accessed through the variable 'e'.
+ *
+ * @param list Pointer to list
+ * @param T Type of list elements
+ * @param stmt Code to run during each loop iteration
+ */
 #define LINKLIST_FOREACH(list, T, stmt)                                        \
     {                                                                          \
         for (LinkNode* __node = (list)->head; __node != NULL;                  \
              __node = __node->next) {                                          \
             T* e = (T*)(__node->object);                                       \
+            assert(e != NULL);                                                 \
+            stmt                                                               \
+        }                                                                      \
+    }
+
+/**
+ * @brief For-each loop macro (reverse)
+ * @note The current element can be accessed through the variable 'e'.
+ *
+ * @param list Pointer to list
+ * @param T Type of list elements
+ * @param stmt Code to run during each loop iteration
+ */
+#define LINKLIST_FOREACH_REV(list, T, stmt)                                    \
+    {                                                                          \
+        for (LinkNode* __node = (list)->tail; __node != NULL;                  \
+             __node = __node->prev) {                                          \
+            T* e = (T*)(__node->object);                                       \
+            assert(e != NULL);                                                 \
             stmt                                                               \
         }                                                                      \
     }

@@ -38,23 +38,18 @@ HeapHeader* heap_get_header(const void* block) {
  * @return BOOL Whether addr points to a valid heap header
  */
 BOOL heap_is_header(const void* addr) {
-    LinkNode* iter;
-    HeapHeader* header;
-
-    // Null pointer
     if (addr == NULL) {
         return FALSE;
     }
 
-    // Iterate over all heap allocations
-    for (iter = heap_list.head; iter != NULL; iter = iter->next) {
-        header = (HeapHeader*)iter->object;
-
+    // clang-format off
+    LINKLIST_FOREACH(&heap_list, HeapHeader,
         // Check if the specified address is the start of any allocation
-        if ((u32)addr == (u32)header) {
+        if ((u32)addr == (u32)e) {
             return TRUE;
         }
-    }
+    );
+    // clang-format on
 
     return FALSE;
 }
@@ -86,19 +81,15 @@ void heap_free(void* block, BOOL recurse) {
  * @return BOOL Whether addr is a valid pointer to heap-memory
  */
 BOOL heap_contains(const void* addr) {
-    LinkNode* iter;
-    HeapHeader* header;
-
-    // Iterate over all heap allocations
-    for (iter = heap_list.head; iter != NULL; iter = iter->next) {
-        header = (HeapHeader*)iter->object;
-
+    // clang-format off
+    LINKLIST_FOREACH(&heap_list, HeapHeader,
         // Check if the specified address resides in this allocation
-        if ((u32)addr >= (u32)header &&
-            (u32)addr < (u32)header + (sizeof(HeapHeader) + header->size)) {
+        if ((u32)addr >= (u32)e &&
+            (u32)addr < (u32)e + (sizeof(HeapHeader) + e->size)) {
             return TRUE;
         }
-    }
+    );
+    // clang-format on
 
     return FALSE;
 }
@@ -107,16 +98,13 @@ BOOL heap_contains(const void* addr) {
  * @brief Dump contents of the heap (for debug)
  */
 void heap_dump(void) {
-    LinkNode* iter;
-    HeapHeader* header;
-
     DEBUG_LOG("[heap] alloced:\n");
 
-    for (iter = heap_list.head; iter != NULL; iter = iter->next) {
-        header = (HeapHeader*)iter->object;
-        DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", header, header->size,
-                  header->ref);
-    }
+    // clang-format off
+    LINKLIST_FOREACH(&heap_list, HeapHeader,
+        DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", e, e->size, e->ref);
+    );
+    // clang-format on
 }
 
 /**
