@@ -47,31 +47,20 @@ static void swap_slabs(void) {
  * @param size Requested size
  */
 void* copying_alloc(u32 size) {
-    void* block = NULL;
-
     // Create the slabs if they don't exist
     if (from_slab == NULL) {
         init_slabs();
     }
 
-    // Attempt to allocate from the active slab
-    block = heap_alloc_ex(from_slab, size);
-    if (block != NULL) {
-        return block;
-    }
+    // Attempt to allocate from the active slab.
+    // If this fails, the runtime will call copying_collect before trying again.
+    void* block = heap_alloc_ex(from_slab, size);
 
-    // Do garbage collection and try again
-    copying_collect();
+    // At this point, either the allocation was successful, or the program must
+    // have terminated (heap failure).
+    assert(block != NULL);
 
-    block = heap_alloc_ex(from_slab, size);
-    if (block != NULL) {
-        return block;
-    }
-
-    // Out of memory
-    DEBUG_LOG("[copying] cannot allocate %u from slab\n", size);
-    exit(EXIT_FAILURE);
-    return NULL;
+    return block;
 }
 
 /**

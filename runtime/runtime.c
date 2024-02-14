@@ -149,6 +149,7 @@ void runtime_do_gc_cycle(void) {
         DEBUG_LOG("[runtime] Cannot force GC cycle on None/Refcount\n");
         break;
     case GCType_MarkSweep: marksweep_collect(); break;
+    case GCType_Copying:   copying_collect(); break;
     default:               DEBUG_LOG("[runtime] Unimplemented GC cycle: type=%d\n", t); break;
     }
 }
