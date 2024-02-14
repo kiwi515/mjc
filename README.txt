@@ -1,135 +1,54 @@
-/*
- * Author:  Trevor Schiff, tschiff2020@my.fit.edu
- * Course:  CSE 4251, Section 01, Spring 2023
- * Project: MiniJava Compiler Project
- * Charset: US-ASCII
- */
+# Heap Heap Hooray - MiniJava Garbage Collector
 
-==========================================================================
-Status of Appel's testcases
-==========================================================================
-BinarySearch.java: Compiles OK, executes OK, and gives the correct output
-BinaryTree.java:   Compiles OK, executes OK, and gives the correct output
-BubbleSort.java:   Compiles OK, executes OK, and gives the correct output
-Factorial.java:    Compiles OK, executes OK, and gives the correct output
-LinearSearch.java: Compiles OK, executes OK, and gives the correct output
-LinkedList.java:   Compiles OK, executes OK, and gives the correct output
-QuickSort.java:    Compiles OK, executes OK, and gives the correct output
-TreeVisitor.java:  Compiles OK, executes OK, but gives the WRONG output 
-                   (due to no dynamic dispatch implementation)
+## Technical Overview:
 
-Total:
-      - Compiled OK:    8/8
-      - Executed OK:    8/8
-      - Correct output: 7/8
+### Garbage Collection Algorithms:
 
-==========================================================================
-Status of my testcases
-==========================================================================
-##########################################################################
-# NOTE: Test.java exists in the same directory as the compiler           #
-# (as specified by the Assignment 8 instruction).                        #
-#                                                                        #
-#     All other test cases mentioned here are inside the "tests"         #
-# directory. I'm not even sure if I am allowed to submit multiple,       #
-# because the asssignment description says "You must also submit your    #
-# one best test case"; however, the README section of the assignment     #
-# mentions optionally supplying other files (such as MyTestCase1.java).  #
-#                                                                        #
-#    If you would like to run these extra cases, they exist inside       #
-# the "tests" directory. The main case (Test.java) and all other cases   #
-# are explained below in detail.                                         #
-##########################################################################
+    Reference Counting:
+        Relies on maintaining reference counts for objects.
+        Suitable for scenarios with simple object lifetimes but suffers from cycles and overhead.
 
-Test.java: My "one best testcase". Demonstrates that my compiler supports
-           the following concepts:
-           - Printing
-           - Integer/boolean expressions
-           - Local variables
-           - If-else statements
-           - Else-if statements
-           - While statements
-           - Function calls (with formal parameters)
-           - Object creation
-           - Class field/method access (including ones inherited from
-             base class FizzBuzzImpl)
-           - Recursion
+    Mark-Sweep:
+        Involves marking reachable objects and sweeping away unreachable ones.
+        More efficient than reference counting but can lead to fragmentation.
 
-IROptimizerTest.java: Another test case. Demonstrates that my compiler's
-                      front-end supports the following optimizations:
-    [NOTE: These are not to be confused with constant *propagation*]
-    [NOTE 2: This test case can be executed, but it is meant for
-             observing the assembly code output]
-                      - Compile-time constant folding in logical AND
-                        expressions
-                          - (x && false) -> (false)
-                          - (x && true)  -> (x)
+    Copying:
+        Involves managing two independent heaps.
+        During garbage collection, live allocations are copied to a new heap, defragmenting it in the process.
+        Requires a minimal heap system for better control over memory allocation.
 
-                      - Compile-time constant folding in LessThan
-                        expressions
-                          - (1 < 5) -> (true)
-                          - (5 < 1) -> (false)
+    Generational:
+        Involves managing multiple independent heaps.
+        Based on the idea that most objects die young.
+        Involves segregating objects based on age and applying different garbage collection strategies to each generation.
 
-                      - Compile-time constant folding in BINOP
-                        arithmetic (Plus/Minus/Times)
+### System Design:
 
-                      - Compile-time constant folding in logical NOT
-                        expressions
-                          - (!true)    -> (false)
-                          - (!(1 < 5)) -> (false) 
+    Integration with MiniJava Compiler:
+        MiniJava compiler written in Java.
+        Utilizes a support library provided by Appel for the course.
+        Integration with a minimal C runtime for memory allocation.
 
-                      - Compile-time constant folding when computing
-                        array subscript offset, where the index is
-                        a constant literal
-                          - myArray[10] -> *(&myArray + (10 + 1) * 4)
-                            -> *(&myArray + 44)
+    Heap Management:
+        Developing a minimal wrapper over standard memory allocation functions for better control.
+        Required for implementing copying garbage collection and defragmentation steps.
 
-ArrayTest.java: Another test case (albeit small). Demonstrates that my
-                compiler supports the following concepts not present
-                in Test.java:
-                - Array creation
-                - Array lookup
-                - Array assignment
-                - Array length field
+    Compiler Flag/Configuration:
+        Designing user-friendly methods for setting compiler flags and configurations.
+        Extending compiler functionality to support setting garbage collection method.
 
-DefUseTest.java: Another much smaller test case. Demonstrates that my
-                 compiler supports detecting uninitialized local variables
-                 during the semantic analysis phase.
-    [NOTE: This test case is meant to be compiled, but it is meant to
-           throw errors (as there are uninitialized variables detected).]
+### Testing and Evaluation:
 
-==========================================================================
-Optional features
-==========================================================================
-    The only optional feature I implemented was the ability to detect
-uninitialized local variables. (See check.DefUseVisitor for implementation)
+    Test Suites:
+        Writing comprehensive test suites to evaluate different garbage collection methods.
+        Testing across various MiniJava programs to gather performance metrics.
 
-==========================================================================
-Re: Zero-size object creation
-==========================================================================
-    When invoking the new operator to create a class instance, if the size
-of the class is zero it will be substituted with a null pointer (CONST 0).
-This is because there's no point in calling runtime_alloc_object to get a
-buffer of zero bytes.
+    Gathering Metrics:
+        Compiling test results to analyze and compare the performance of different garbage collection methods.
+        Key metrics include memory usage, execution time, and program efficiency.
 
-    It's not obvious from the assembly that this is happening, so I wanted
-to mention it here.
+### Acknowledgments:
 
-==========================================================================
-Re: Register allocation / back-end optimization
-==========================================================================
-    I believe my method of register allocation would be considered
-"stupid" register allocation. Registers are assigned on a first-come,
-first-serve basis, although they become re-available after their owner's
-(temp's) lifetime ends.
-
-    My "lifetime" data is a bit naive, it doesn't take into account things
-like the order of basic blocks/control flow: it simply has a start and end
-point in the code fragment.
-
-    Despite this, it seems to have worked out nicely. This is in part due
-to the optimizations I've written in (see optimize.Phase and/or
-codegen.arch.sparc.SparcOptimizer). The optimization heuiristics are also
-somewhat naive, but I am so happy with how they've managed to clean up
-the assembly code. Because the optimization phase comes before the
-register allocation phase, the optimizations also help me save registers.
+    Dr. Ryan Stansifer for guidance and support throughout the project.
+    Ian Orzel and Dylan McDougall for the Jabberwocky SPARC environment.
+    Contributors to the MiniJava compiler and related tools.
