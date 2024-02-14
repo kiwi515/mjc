@@ -15,7 +15,10 @@
  * @brief One big "slab" of memory
  */
 typedef struct Slab {
-    // List of available blocks (chunks of memory)
+    // Memory owned by this slab (always contiguous)
+    void* begin;
+    u32 size;
+    // Slab is partitioned into blocks
     LinkList blocks;
 } Slab;
 
@@ -23,8 +26,10 @@ typedef struct Slab {
  * @brief Block from which memory can be allocated
  */
 typedef struct SlabBlock {
+    // Memory owned by this block
     void* begin;
     u32 size;
+    // Whether this block is in use
     BOOL alloced;
 } SlabBlock;
 

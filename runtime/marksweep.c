@@ -140,25 +140,25 @@ void marksweep_mark(void) {
     // clang-format off
     LINKLIST_FOREACH_REV(&frame_list, StackDesc,
         // List node contains stack frame descriptor
-        assert(e->sp != NULL && e->size >= sizeof(SparcFrame));
-        DEBUG_LOG("[marksweep] search stack frame: %p (size:%d)\n", e->sp, e->size);
+        assert(_elem->sp != NULL && _elem->size >= sizeof(SparcFrame));
+        DEBUG_LOG("[marksweep] search stack frame: %p (size:%d)\n", _elem->sp, _elem->size);
 
         // Search CPU local registers (compiler temporaries)
-        for (i = 0; i < ARRAY_LENGTH(e->sp->lreg); i++) {
-            DEBUG_LOG("  sp->lreg[%d]=%08X\n", i, e->sp->lreg[i]);
-            search_word(e->sp->lreg[i]);
+        for (i = 0; i < ARRAY_LENGTH(_elem->sp->lreg); i++) {
+            DEBUG_LOG("  sp->lreg[%d]=%08X\n", i, _elem->sp->lreg[i]);
+            search_word(_elem->sp->lreg[i]);
         }
 
         // Search CPU input/output registers
         // Ignore %i6/%i7 (SP/FP, RA)
         for (i = 0; i < 6; i++) {
-            DEBUG_LOG("  sp->ioreg[%d]=%08X\n", i, e->sp->lreg[i]);
-            search_word(e->sp->ioreg[i]);
+            DEBUG_LOG("  sp->ioreg[%d]=%08X\n", i, _elem->sp->lreg[i]);
+            search_word(_elem->sp->ioreg[i]);
         }
 
         // # of locals = frame space occupied by locals / size of a local.
         // (Every data type in MiniJava takes up one word (u32).)
-        local_num = (e->size - sizeof(SparcFrame)) / sizeof(u32);
+        local_num = (_elem->size - sizeof(SparcFrame)) / sizeof(u32);
         DEBUG_LOG("  local_num=%d\n", local_num);
 
         /**
@@ -171,12 +171,12 @@ void marksweep_mark(void) {
          * This is because the stack must be padded for alignment.
          *
          * To get around this, we calculate the size of the locals while
-         * accounting for alignment (round UP e->size to nearest 8).
+         * accounting for alignment (round UP _elem->size to nearest 8).
          *
          * Divide this by the size of a local variable (u32), and we get the
          * offset into sp->locals which we must begin from.
          */
-        local_first = ROUND_UP(e->size, 8) - sizeof(SparcFrame);
+        local_first = ROUND_UP(_elem->size, 8) - sizeof(SparcFrame);
         local_first /= sizeof(u32);
 
         // Convert to offset (zero-indexed)
@@ -190,9 +190,9 @@ void marksweep_mark(void) {
             local_idx = local_first + i;
 
             DEBUG_LOG("  sp->locals[%d (align:%d)] = %08X\n", i, local_idx,
-                      e->sp->locals[local_idx]);
+                      _elem->sp->locals[local_idx]);
 
-            search_word(e->sp->locals[local_idx]);
+            search_word(_elem->sp->locals[local_idx]);
         }
     );
     // clang-format on
@@ -205,12 +205,12 @@ void marksweep_sweep() {
     // clang-format off
     LINKLIST_FOREACH(&heap_list, HeapHeader,
         // free unmarked objects, but don't touch any RC
-        if (!e->marked) {
-            DEBUG_LOG("[marksweep] sweep %p\n", e);
-            heap_free(e->data, FALSE);
+        if (!_elem->marked) {
+            DEBUG_LOG("[marksweep] sweep %p\n", _elem);
+            heap_free(_elem->data, FALSE);
         } else {
             // unmark for next gc cycle
-            e->marked = FALSE;
+            _elem->marked = FALSE;
         }
     );
     // clang-format on

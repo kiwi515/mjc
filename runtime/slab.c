@@ -22,17 +22,19 @@ Slab* slab_create(u32 size) {
     Slab* slab = OBJ_NEW(Slab);
     assert(slab != NULL);
 
-    // Initially we have one big, continuous block
-    SlabBlock* block = OBJ_NEW(SlabBlock);
-    assert(block != NULL);
-
     // Underlying memory
     void* begin = heap_alloc(size);
     assert(begin != NULL);
 
-    // Register block
-    block->begin = begin;
-    block->size = size;
+    // Important for copying: This tells us the range of the whole thing
+    slab->begin = begin;
+    slab->size = size;
+
+    // Initially we have one big, continuous block
+    SlabBlock* block = OBJ_NEW(SlabBlock);
+    assert(block != NULL);
+    block->begin = slab->begin;
+    block->size = slab->size;
     linklist_append(&slab->blocks, block);
 
     return slab;
@@ -54,13 +56,15 @@ void* slab_alloc(Slab* slab, u32 size) {
         &slab->blocks, SlabBlock,
 
         // Block already in use
-        if (e->alloced) { continue; }
+        if (_elem->alloced) { continue; }
 
         // Block too small
-        if (e->size < size) { continue; }
+        if (_elem->size < size) { continue; }
 
         // New best block found?
-        if (bestBlock == NULL || e->size < bestBlock->size) { bestBlock = e; });
+        if (bestBlock == NULL || _elem->size < bestBlock->size) {
+            bestBlock = _elem;
+        });
 
     // No available block, we need to GC
     if (bestBlock == NULL) {
@@ -100,18 +104,22 @@ void slab_free(Slab* slab, void* block) {
     assert(slab != NULL);
     assert(block != NULL);
 
+    // If this fails, we are freeing to the wrong slab
+    assert((u32)block >= (u32)slab->begin &&
+           (u32)block < (u32)slab->begin + slab->size);
+
     // Find the slab block that contains this memory
     SlabBlock* parent = NULL;
     LINKLIST_FOREACH(
         &slab->blocks, SlabBlock,
 
         // Block not in use (could not possibly contain this memory)
-        if (!e->alloced) { continue; }
+        if (!_elem->alloced) { continue; }
 
         // Does the memory fall within this block?
-        if ((u32)block >= (u32)e->begin &&
-            (u32)block < (u32)e->begin + e->size) {
-            parent = e;
+        if ((u32)block >= (u32)_elem->begin &&
+            (u32)block < (u32)_elem->begin + _elem->size) {
+            parent = _elem;
             break;
         });
 
