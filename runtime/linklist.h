@@ -32,4 +32,12 @@ LinkNode* linklist_pop(LinkList* list);
 BOOL linklist_contains(const LinkList* list, void* object);
 void linklist_dump(const LinkList* list);
 
+#define LINKLIST_FOREACH(list, T, stmt)                                        \
+    {                                                                          \
+        for (LinkNode* NODE = (list)->head; NODE != NULL; NODE = NODE->next) { \
+            T* ELEM = (T*)(NODE->object);                                      \
+            stmt                                                               \
+        }                                                                      \
+    }
+
 #endif

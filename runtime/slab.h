@@ -25,6 +25,7 @@ typedef struct Slab {
 typedef struct SlabBlock {
     void* begin;
     u32 size;
+    BOOL alloced;
 } SlabBlock;
 
 Slab* slab_create(u32 size);

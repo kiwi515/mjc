@@ -35,9 +35,13 @@ extern LinkList heap_list;
 
 HeapHeader* heap_get_header(const void* block);
 BOOL heap_is_header(const void* addr);
+
 void* heap_alloc(u32 size);
 void heap_free(void* block, BOOL recurse);
 BOOL heap_contains(const void* addr);
 void heap_dump(void);
+
+void* heap_alloc_ex(Slab* slab, u32 size);
+void heap_free_ex(Slab* slab, void* block, BOOL recurse);
 
 #endif
