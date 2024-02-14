@@ -22,15 +22,6 @@ static Slab* from_slab = NULL;
 static Slab* to_slab = NULL;
 
 /**
- * @brief Swap from/to slabs
- */
-static void swap_slabs(void) {
-    Slab* tmp = from_slab;
-    from_slab = to_slab;
-    to_slab = tmp;
-}
-
-/**
  * @brief Create slabs
  */
 static void init_slabs(void) {
@@ -42,13 +33,29 @@ static void init_slabs(void) {
 }
 
 /**
+ * @brief Swap from/to slabs
+ */
+static void swap_slabs(void) {
+    Slab* tmp = from_slab;
+    from_slab = to_slab;
+    to_slab = tmp;
+}
+
+/**
  * @brief Allocate a block of memory
  *
  * @param size Requested size
  */
 void* copying_alloc(u32 size) {
+    void* block = NULL;
+
+    // Create the slabs if they don't exist
+    if (from_slab == NULL) {
+        init_slabs();
+    }
+
     // Attempt to allocate from the active slab
-    void* block = heap_alloc_ex(from_slab, size);
+    block = heap_alloc_ex(from_slab, size);
     if (block != NULL) {
         return block;
     }
@@ -56,7 +63,7 @@ void* copying_alloc(u32 size) {
     // Do garbage collection and try again
     copying_collect();
 
-    void* block = heap_alloc_ex(from_slab, size);
+    block = heap_alloc_ex(from_slab, size);
     if (block != NULL) {
         return block;
     }
@@ -82,4 +89,9 @@ void copying_free(void* block) {
 /**
  * @brief Perform a copying GC cycle
  */
-void copying_collect(void) {}
+void copying_collect(void) {
+    // Do stuff...
+
+    //... then swap from/to
+    swap_slabs();
+}
