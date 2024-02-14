@@ -35,8 +35,8 @@ void linklist_dump(const LinkList* list);
 
 /**
  * @brief For-each loop macro
- * @note The current NODE can be accessed through the variable '_node'.
- * @note The current ELEMENT can be accessed through the variable '_elem'.
+ * @note The current NODE can be accessed through the variable 'NODE'.
+ * @note The current ELEMENT can be accessed through the variable 'ELEM'.
  *
  * @param list Pointer to list
  * @param T Type of list elements
@@ -44,18 +44,17 @@ void linklist_dump(const LinkList* list);
  */
 #define LINKLIST_FOREACH(list, T, stmt)                                        \
     {                                                                          \
-        for (LinkNode* _node = (list)->head; _node != NULL;                    \
-             _node = _node->next) {                                            \
-            T* _elem = (T*)(_node->object);                                    \
-            assert(_elem != NULL);                                             \
+        for (LinkNode* NODE = (list)->head; NODE != NULL; NODE = NODE->next) { \
+            T* ELEM = (T*)(NODE->object);                                      \
+            assert(ELEM != NULL);                                              \
             stmt                                                               \
         }                                                                      \
     }
 
 /**
  * @brief For-each loop macro (reverse)
- * @note The current NODE can be accessed through the variable '_node'.
- * @note The current ELEMENT can be accessed through the variable '_elem'.
+ * @note The current NODE can be accessed through the variable 'NODE'.
+ * @note The current ELEMENT can be accessed through the variable 'ELEM'.
  *
  * @param list Pointer to list
  * @param T Type of list elements
@@ -63,10 +62,9 @@ void linklist_dump(const LinkList* list);
  */
 #define LINKLIST_FOREACH_REV(list, T, stmt)                                    \
     {                                                                          \
-        for (LinkNode* _node = (list)->tail; _node != NULL;                    \
-             _node = _node->prev) {                                            \
-            T* _elem = (T*)(_node->object);                                    \
-            assert(_elem != NULL);                                             \
+        for (LinkNode* NODE = (list)->tail; NODE != NULL; NODE = NODE->prev) { \
+            T* ELEM = (T*)(NODE->object);                                      \
+            assert(ELEM != NULL);                                              \
             stmt                                                               \
         }                                                                      \
     }
