@@ -10,5 +10,6 @@
 
 void* copying_alloc(u32 size);
 void copying_free(void* block);
+void copying_collect(void);
 
 #endif

@@ -9,6 +9,7 @@
 #ifndef MINI_JAVA_COMPILER_HEAP_H
 #define MINI_JAVA_COMPILER_HEAP_H
 #include "linklist.h"
+#include "slab.h"
 #include "types.h"
 
 // Shortcut for object allocation

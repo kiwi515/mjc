@@ -54,15 +54,13 @@ void* slab_alloc(Slab* slab, u32 size) {
         &slab->blocks, SlabBlock,
 
         // Block already in use
-        if (ELEM->alloced) { continue; }
+        if (e->alloced) { continue; }
 
         // Block too small
-        if (ELEM->size < size) { continue; }
+        if (e->size < size) { continue; }
 
         // New best block found?
-        if (bestBlock == NULL || ELEM->size < bestBlock->size) {
-            bestBlock = ELEM;
-        });
+        if (bestBlock == NULL || e->size < bestBlock->size) { bestBlock = e; });
 
     // No available block, we need to GC
     if (bestBlock == NULL) {
@@ -108,12 +106,12 @@ void slab_free(Slab* slab, void* block) {
         &slab->blocks, SlabBlock,
 
         // Block not in use (could not possibly contain this memory)
-        if (!ELEM->alloced) { continue; }
+        if (!e->alloced) { continue; }
 
         // Does the memory fall within this block?
-        if ((u32)block >= (u32)ELEM->begin &&
-            (u32)block < (u32)ELEM->begin + ELEM->size) {
-            parent = ELEM;
+        if ((u32)block >= (u32)e->begin &&
+            (u32)block < (u32)e->begin + e->size) {
+            parent = e;
             break;
         });
 

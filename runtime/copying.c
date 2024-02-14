@@ -6,7 +6,9 @@
  */
 
 #include "copying.h"
+#include "heap.h"
 #include "slab.h"
+#include <stdlib.h>
 
 /**
  * @brief Size of each slab in bytes
@@ -46,12 +48,22 @@ static void init_slabs(void) {
  */
 void* copying_alloc(u32 size) {
     // Attempt to allocate from the active slab
-    void* block = slab_alloc(from_slab, size);
+    void* block = heap_alloc_ex(from_slab, size);
     if (block != NULL) {
         return block;
     }
 
-    // Do garbage collection...
+    // Do garbage collection and try again
+    copying_collect();
+
+    void* block = heap_alloc_ex(from_slab, size);
+    if (block != NULL) {
+        return block;
+    }
+
+    // Out of memory
+    DEBUG_LOG("[copying] cannot allocate %u from slab\n", size);
+    exit(EXIT_FAILURE);
     return NULL;
 }
 
@@ -64,5 +76,10 @@ void copying_free(void* block) {
     assert(block != NULL);
 
     // Should always be from the working slab
-    slab_free(from_slab, block);
+    heap_free_ex(from_slab, block, TRUE);
 }
+
+/**
+ * @brief Perform a copying GC cycle
+ */
+void copying_collect(void) {}

@@ -8,6 +8,7 @@
 
 #include "runtime.h"
 #include "config.h"
+#include "copying.h"
 #include "heap.h"
 #include "marksweep.h"
 #include "refcount.h"
@@ -29,6 +30,11 @@ typedef struct ArrayHeader {
  * @return void* Object memory
  */
 void* runtime_alloc_object(u32 size) {
+    // Copying GC needs to use slabs
+    if (config_get_gctype() != GCType_Copying) {
+        return copying_alloc(size);
+    }
+
     return heap_alloc(size);
 }
 
@@ -43,7 +49,7 @@ void* runtime_alloc_array(u32 size, u32 n) {
     ArrayHeader* array;
 
     // Allocate array memory
-    array = heap_alloc(size * n + sizeof(ArrayHeader));
+    array = runtime_alloc_object(size * n + sizeof(ArrayHeader));
 
     // Set array length
     if (array != NULL) {

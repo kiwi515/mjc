@@ -34,8 +34,9 @@ void linklist_dump(const LinkList* list);
 
 #define LINKLIST_FOREACH(list, T, stmt)                                        \
     {                                                                          \
-        for (LinkNode* NODE = (list)->head; NODE != NULL; NODE = NODE->next) { \
-            T* ELEM = (T*)(NODE->object);                                      \
+        for (LinkNode* __node = (list)->head; __node != NULL;                  \
+             __node = __node->next) {                                          \
+            T* e = (T*)(__node->object);                                       \
             stmt                                                               \
         }                                                                      \
     }
