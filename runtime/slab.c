@@ -73,10 +73,10 @@ void* slab_alloc(Slab* slab, u32 size) {
 
     // Sanity check
     assert(bestBlock->size >= size);
+    assert(bestBlock->begin != NULL);
 
     // If the block is exactly the right size, we can just take it.
     if (bestBlock->size == size) {
-        assert(bestBlock->begin != NULL);
         return bestBlock->begin;
     }
 
