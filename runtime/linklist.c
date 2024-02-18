@@ -14,8 +14,8 @@
  * @brief Append new node to linked list
  */
 static void append_impl(LinkList* list, LinkNode* node) {
-    assert(list != NULL);
-    assert(node != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(node != NULL);
 
     if (list->head == NULL) {
         // Initialize list
@@ -36,8 +36,8 @@ static void append_impl(LinkList* list, LinkNode* node) {
  * @brief Remove node to linked list
  */
 static void remove_impl(LinkList* list, LinkNode* node) {
-    assert(list != NULL);
-    assert(node != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(node != NULL);
 
     // Handle next link
     if (node->next != NULL) {
@@ -45,7 +45,7 @@ static void remove_impl(LinkList* list, LinkNode* node) {
     }
     // If next is NULL, this is the list tail
     else {
-        assert(node == list->tail);
+        MJC_ASSERT(node == list->tail);
         list->tail = list->tail->prev;
     }
 
@@ -55,7 +55,7 @@ static void remove_impl(LinkList* list, LinkNode* node) {
     }
     // If prev is NULL, this is the list head
     else {
-        assert(node == list->head);
+        MJC_ASSERT(node == list->head);
         list->head = list->head->next;
     }
 
@@ -73,7 +73,7 @@ void linklist_destroy(LinkList* list) {
     LinkNode* iter;
     LinkNode* next;
 
-    assert(list != NULL);
+    MJC_ASSERT(list != NULL);
 
     for (iter = list->head; iter != NULL; iter = next) {
         // Get next ptr early before we break any links
@@ -94,12 +94,12 @@ void linklist_destroy(LinkList* list) {
 void linklist_append(LinkList* list, void* object) {
     LinkNode* node;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Create new list node
     node = OBJ_ALLOC(LinkNode);
-    assert(node != NULL);
+    MJC_ASSERT(node != NULL);
 
     // Append new node
     node->object = object;
@@ -137,12 +137,12 @@ LinkNode* linklist_pop(LinkList* list) {
 void linklist_insert(LinkList* list, LinkNode* at, void* object) {
     LinkNode* node;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Create new list node
     node = OBJ_ALLOC(LinkNode);
-    assert(node != NULL);
+    MJC_ASSERT(node != NULL);
     node->object = object;
 
     // Inserting after list tail
@@ -172,8 +172,8 @@ void linklist_insert(LinkList* list, LinkNode* at, void* object) {
 BOOL linklist_remove(LinkList* list, void* object) {
     LinkNode* iter;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Search for object in this list
     for (iter = list->head; iter != NULL; iter = iter->next) {
@@ -196,8 +196,8 @@ BOOL linklist_remove(LinkList* list, void* object) {
 BOOL linklist_contains(const LinkList* list, void* object) {
     LinkNode* iter;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Search for object in this list
     for (iter = list->head; iter != NULL; iter = iter->next) {
@@ -220,7 +220,7 @@ void linklist_dump(const LinkList* list) {
     LinkNode* iter;
     int i;
 
-    assert(list != NULL);
+    MJC_ASSERT(list != NULL);
 
     DEBUG_LOG("[linklist] dump list: %p\n", list);
 

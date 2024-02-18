@@ -25,7 +25,7 @@ LinkList heap_list;
  * @param block Memory block
  */
 HeapHeader* heap_get_header(const void* block) {
-    assert(block != NULL);
+    MJC_ASSERT(block != NULL);
 
     // Header is placed before block contents
     return (HeapHeader*)((char*)block - sizeof(HeapHeader));
@@ -168,7 +168,7 @@ void* heap_alloc_ex(Slab* slab, u32 size) {
 void heap_free_ex(Slab* slab, void* block, BOOL recurse) {
     HeapHeader* header;
 
-    assert(block != NULL);
+    MJC_ASSERT(block != NULL);
 
     header = heap_get_header(block);
 

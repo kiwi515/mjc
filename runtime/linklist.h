@@ -47,7 +47,7 @@ void linklist_dump(const LinkList* list);
     {                                                                          \
         for (LinkNode* NODE = (list)->head; NODE != NULL; NODE = NODE->next) { \
             T ELEM = (T)(NODE->object);                                        \
-            assert(ELEM != NULL);                                              \
+            MJC_ASSERT(ELEM != NULL);                                              \
             stmt                                                               \
         }                                                                      \
     }
@@ -65,7 +65,7 @@ void linklist_dump(const LinkList* list);
     {                                                                          \
         for (LinkNode* NODE = (list)->tail; NODE != NULL; NODE = NODE->prev) { \
             T ELEM = (T)(NODE->object);                                        \
-            assert(ELEM != NULL);                                              \
+            MJC_ASSERT(ELEM != NULL);                                              \
             stmt                                                               \
         }                                                                      \
     }

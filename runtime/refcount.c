@@ -15,7 +15,7 @@
  * @param header Heap allocation header
  */
 void refcount_increment(HeapHeader* header) {
-    assert(header != NULL);
+    MJC_ASSERT(header != NULL);
 
     header->ref++;
     DEBUG_LOG("[refcount] increment %p, now %d\n", header, header->ref);
@@ -27,10 +27,10 @@ void refcount_increment(HeapHeader* header) {
  * @param header Heap allocation header
  */
 void refcount_decrement(HeapHeader* header) {
-    assert(header != NULL);
+    MJC_ASSERT(header != NULL);
 
     // Sanity check: Ref count should be valid for decrement
-    assert(header->ref > 0);
+    MJC_ASSERT(header->ref > 0);
 
     header->ref--;
     DEBUG_LOG("[refcount] decrement %p, now %d\n", header, header->ref);
@@ -52,7 +52,7 @@ void refcount_decr_children(HeapHeader* header) {
     void** ptr;
     HeapHeader* maybe_header;
 
-    assert(header != NULL);
+    MJC_ASSERT(header != NULL);
 
     // Search block data for pointers
     for (i = 0; i < header->size; i += sizeof(void*)) {

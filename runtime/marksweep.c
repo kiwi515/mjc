@@ -53,7 +53,7 @@ void marksweep_push_stack(void* frame, u32 size) {
 
     // Allocate and fill out stack frame structure
     f = OBJ_ALLOC(StackDesc);
-    assert(f != NULL);
+    MJC_ASSERT(f != NULL);
     f->sp = (SparcFrame*)frame;
     f->size = size;
 
@@ -71,7 +71,7 @@ void marksweep_pop_stack(void) {
 
     // List should never be empty when popping
     popped = linklist_pop(&frame_list);
-    assert(popped != NULL);
+    MJC_ASSERT(popped != NULL);
 
     // Release memory
     frame = (StackDesc*)popped->object;
@@ -118,8 +118,8 @@ static void search_word(u32 word) {
 static void search_block(void* block, u32 size) {
     int i;
 
-    assert(block != NULL);
-    assert(size % sizeof(u32) == 0);
+    MJC_ASSERT(block != NULL);
+    MJC_ASSERT(size % sizeof(u32) == 0);
 
     // Search the block for references
     for (i = 0; i < size / sizeof(u32); i++) {
@@ -140,7 +140,7 @@ void marksweep_mark(void) {
     // clang-format off
     LINKLIST_FOREACH_REV(&frame_list, StackDesc*,
         // List node contains stack frame descriptor
-        assert(ELEM->sp != NULL && ELEM->size >= sizeof(SparcFrame));
+        MJC_ASSERT(ELEM->sp != NULL && ELEM->size >= sizeof(SparcFrame));
         DEBUG_LOG("[marksweep] search stack frame: %p (size:%d)\n", ELEM->sp, ELEM->size);
 
         // Search CPU local registers (compiler temporaries)
