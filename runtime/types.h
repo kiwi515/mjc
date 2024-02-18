@@ -39,6 +39,9 @@ typedef int BOOL;
 #define ROUND_UP(x, align) (((x) + (align)-1) & (-(align)))
 #define ARRAY_LENGTH(x) (sizeof((x)) / sizeof((x)[0]))
 
+// Shortcut for object allocation
+#define OBJ_ALLOC(T) ((T*)malloc(sizeof(T)))
+
 #ifndef NDEBUG
 #define DEBUG_LOG printf
 #else

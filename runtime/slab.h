@@ -16,7 +16,7 @@
  */
 typedef struct Slab {
     // Memory owned by this slab (always contiguous)
-    void* begin;
+    u8* begin;
     u32 size;
     // Slab is partitioned into blocks
     LinkList blocks;
@@ -27,13 +27,15 @@ typedef struct Slab {
  */
 typedef struct SlabBlock {
     // Memory owned by this block
-    void* begin;
+    u8* begin;
     u32 size;
     // Whether this block is in use
     BOOL alloced;
 } SlabBlock;
 
 Slab* slab_create(u32 size);
+void slab_destroy(Slab* slab);
+
 void* slab_alloc(Slab* slab, u32 size);
 void slab_free(Slab* slab, void* block);
 

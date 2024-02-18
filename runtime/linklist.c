@@ -69,7 +69,7 @@ static void remove_impl(LinkList* list, LinkNode* node) {
  *
  * @param list Linked list
  */
-void linklist_free(LinkList* list) {
+void linklist_destroy(LinkList* list) {
     LinkNode* iter;
     LinkNode* next;
 
@@ -98,7 +98,7 @@ void linklist_append(LinkList* list, void* object) {
     assert(object != NULL);
 
     // Create new list node
-    node = malloc(sizeof(LinkNode));
+    node = OBJ_ALLOC(LinkNode);
     assert(node != NULL);
 
     // Append new node
@@ -125,6 +125,41 @@ LinkNode* linklist_pop(LinkList* list) {
     remove_impl(list, node);
 
     return node;
+}
+
+/**
+ * @brief Insert object AFTER specified position
+ *
+ * @param list Linked list (unused, for clarity)
+ * @param at Position to insert at (new node goes AFTER)
+ * @param object Object
+ */
+void linklist_insert(LinkList* list, LinkNode* at, void* object) {
+    LinkNode* node;
+
+    assert(list != NULL);
+    assert(object != NULL);
+
+    // Create new list node
+    node = OBJ_ALLOC(LinkNode);
+    assert(node != NULL);
+    node->object = object;
+
+    // Inserting after list tail
+    if (at->next == NULL) {
+        // at <-> node <-> NULL
+        at->next = node;
+        node->prev = at;
+    }
+    // Not inserting after list tail
+    else {
+        // node <-> next
+        node->next = at->next;
+        node->next->prev = node;
+        // at <-> node <-> next
+        at->next = node;
+        node->prev = at;
+    }
 }
 
 /**

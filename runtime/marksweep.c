@@ -52,7 +52,7 @@ void marksweep_push_stack(void* frame, u32 size) {
     DEBUG_LOG("[marksweep] push_stack %p (size:%d)\n", frame, size);
 
     // Allocate and fill out stack frame structure
-    f = malloc(sizeof(StackDesc));
+    f = OBJ_ALLOC(StackDesc);
     assert(f != NULL);
     f->sp = (SparcFrame*)frame;
     f->size = size;
@@ -138,7 +138,7 @@ void marksweep_mark(void) {
     int i;
 
     // clang-format off
-    LINKLIST_FOREACH_REV(&frame_list, StackDesc,
+    LINKLIST_FOREACH_REV(&frame_list, StackDesc*,
         // List node contains stack frame descriptor
         assert(ELEM->sp != NULL && ELEM->size >= sizeof(SparcFrame));
         DEBUG_LOG("[marksweep] search stack frame: %p (size:%d)\n", ELEM->sp, ELEM->size);
@@ -203,7 +203,7 @@ void marksweep_mark(void) {
  */
 void marksweep_sweep() {
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
         // free unmarked objects, but don't touch any RC
         if (!ELEM->marked) {
             DEBUG_LOG("[marksweep] sweep %p\n", ELEM);

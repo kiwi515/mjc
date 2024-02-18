@@ -7,6 +7,7 @@
 
 #include "copying.h"
 #include "heap.h"
+#include "marksweep.h"
 #include "slab.h"
 #include <stdlib.h>
 
@@ -79,8 +80,37 @@ void copying_free(void* block) {
  * @brief Perform a copying GC cycle
  */
 void copying_collect(void) {
-    // Do stuff...
+    // Mark live allocations
+    marksweep_mark();
 
-    //... then swap from/to
+    /**
+     * We need to clear the "to" slab.
+     * This is done by destroying it, and then re-creating it.
+     */
+    slab_destroy(to_slab);
+    free(to_slab);
+    to_slab = slab_create(SLAB_SIZE);
+
+    /**
+     * Copy over all live allocations.
+     *
+     * Code from marksweep just marked all the live heap headers in the "from"
+     * slab.
+     *
+     * Every used slab block has a heap header at the start, so we check those.
+     *
+     * If the block *is* used, we copy over the block contents to a new block in
+     * the to slab.
+     */
+    while (1) {
+        ; // TODO
+    }
+
+    // Everything left in the from slab is garbage
+    slab_destroy(from_slab);
+    free(from_slab);
+    from_slab = slab_create(SLAB_SIZE);
+
+    // Swap from/to
     swap_slabs();
 }

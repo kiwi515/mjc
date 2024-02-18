@@ -43,7 +43,7 @@ BOOL heap_is_header(const void* addr) {
     }
 
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
         // Check if the specified address is the start of any allocation
         if ((u32)addr == (u32)ELEM) {
             return TRUE;
@@ -82,7 +82,7 @@ void heap_free(void* block, BOOL recurse) {
  */
 BOOL heap_contains(const void* addr) {
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
         // Check if the specified address resides in this allocation
         if ((u32)addr >= (u32)ELEM &&
             (u32)addr < (u32)ELEM + (sizeof(HeapHeader) + ELEM->size)) {
@@ -101,7 +101,7 @@ void heap_dump(void) {
     DEBUG_LOG("[heap] alloced:\n");
 
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
         DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", ELEM, ELEM->size, ELEM->ref);
     );
     // clang-format on
