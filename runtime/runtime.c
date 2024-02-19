@@ -31,7 +31,7 @@ typedef struct ArrayHeader {
  */
 void* runtime_alloc_object(u32 size) {
     // Copying GC needs to use slabs
-    if (config_get_gctype() != GCType_Copying) {
+    if (config_get_gctype() == GCType_Copying) {
         return copying_alloc(size);
     }
 
