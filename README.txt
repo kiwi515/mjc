@@ -25,7 +25,6 @@
 ### System Design:
 
     Integration with MiniJava Compiler:
-        MiniJava compiler written in Java.
         Utilizes a support library provided by Appel for the course.
         Integration with a minimal C runtime for memory allocation.
 
@@ -52,3 +51,8 @@
     Dr. Ryan Stansifer for guidance and support throughout the project.
     Ian Orzel and Dylan McDougall for the Jabberwocky SPARC environment.
     Contributors to the MiniJava compiler and related tools.
+
+### How to use:
+    Install Poetry from [here](https://python-poetry.org/docs/#installing-with-the-official-installer)
+    Install Jabberwocky from [here](https://github.com/Kippiii/jabberwocky-container-manager/tree/4d2cd4380169a0b81d623fc6a7e900807e9c7ffe?tab=readme-ov-file#jabberwocky-container-manager) to get Jabberwocky set up.
+    Install the SPARK container from <DROPBOX LINK TO BE ADDED>
