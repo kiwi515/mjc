@@ -21,7 +21,7 @@ Slab* slab_create(u32 size) {
     MJC_ASSERT(size > 0);
 
     // Slab holds the list of available blocks
-    Slab* slab = OBJ_ALLOC(Slab);
+    Slab* slab = MJC_ALLOC_OBJ(Slab);
     MJC_ASSERT(slab != NULL);
 
     // Underlying memory
@@ -33,7 +33,7 @@ Slab* slab_create(u32 size) {
     slab->size = size;
 
     // Initially we have one big, continuous block
-    SlabBlock* block = OBJ_ALLOC(SlabBlock);
+    SlabBlock* block = MJC_ALLOC_OBJ(SlabBlock);
     MJC_ASSERT(block != NULL);
     block->begin = slab->begin;
     block->size = slab->size;
@@ -133,7 +133,7 @@ void* slab_alloc(Slab* slab, u32 size) {
 
     // The block is bigger than what we need, so we need to break off a piece.
     // (This is done by creating a new block with the remaining size)
-    SlabBlock* otherPart = OBJ_ALLOC(SlabBlock);
+    SlabBlock* otherPart = MJC_ALLOC_OBJ(SlabBlock);
     MJC_ASSERT(otherPart != NULL);
     otherPart->begin = bestBlock->begin + size;
     otherPart->size = bestBlock->size - size;

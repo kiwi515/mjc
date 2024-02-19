@@ -98,7 +98,7 @@ void linklist_append(LinkList* list, void* object) {
     MJC_ASSERT(object != NULL);
 
     // Create new list node
-    node = OBJ_ALLOC(LinkNode);
+    node = MJC_ALLOC_OBJ(LinkNode);
     MJC_ASSERT(node != NULL);
 
     // Append new node
@@ -141,7 +141,7 @@ void linklist_insert(LinkList* list, LinkNode* at, void* object) {
     MJC_ASSERT(object != NULL);
 
     // Create new list node
-    node = OBJ_ALLOC(LinkNode);
+    node = MJC_ALLOC_OBJ(LinkNode);
     MJC_ASSERT(node != NULL);
     node->object = object;
 

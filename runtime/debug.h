@@ -63,17 +63,24 @@ void debug_fail_assert(const char* file, int line, const char* msg, ...);
 /*=======================================================*/
 
 /**
- * @brief Allocate a block of memory (NOT in our heap, but from the STL)
+ * @brief Allocate a block of memory (from the STL heap)
  *
  * @param size Block size
  */
 #define MJC_ALLOC(size) malloc(size)
 
 /**
- * @brief Free a block of memory (NOT to our heap, but to the STL)
+ * @brief Free a block of memory (to the STL heap)
  *
  * @param block Memory block
  */
 #define MJC_FREE(block) free(block)
+
+/**
+ * @brief Allocate memory for an object by type (from the STL heap)
+ *
+ * @param T Object type
+ */
+#define MJC_ALLOC_OBJ(T) ((T*)malloc(sizeof(T)))
 
 #endif

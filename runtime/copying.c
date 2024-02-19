@@ -133,7 +133,7 @@ void copying_collect(void) {
          * 
          * We do a little hack to copy the *contents* while not copying the HeapHeader.
          */
-        const u8* contentBegin = slab_block_get_contents(ELEM);
+        u8* contentBegin = slab_block_get_contents(ELEM);
         u32 contentSize = ELEM->size - sizeof(HeapHeader);
 
         // This also means we must create a heap header for the new block,

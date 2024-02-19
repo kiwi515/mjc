@@ -52,7 +52,7 @@ void marksweep_push_stack(void* frame, u32 size) {
     MJC_LOG("push_stack %p (size:%d)\n", frame, size);
 
     // Allocate and fill out stack frame structure
-    f = OBJ_ALLOC(StackDesc);
+    f = MJC_ALLOC_OBJ(StackDesc);
     MJC_ASSERT(f != NULL);
     f->sp = (SparcFrame*)frame;
     f->size = size;
