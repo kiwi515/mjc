@@ -81,6 +81,12 @@ void copying_free(void* block) {
  * @brief Perform a copying GC cycle
  */
 void copying_collect(void) {
+    // Can't do this cycle
+    if (from_slab == NULL) {
+        MJC_LOG("Please initialize slabs\n");
+        return;
+    }
+
     // Mark live allocations
     marksweep_mark();
 
@@ -109,12 +115,16 @@ void copying_collect(void) {
             continue;
         }
 
+        MJC_ASSERT_MSG(heap_is_header(ELEM->begin),
+                      "Block is allocated but has no heap header?");
+
         // Don't copy garbage
-        if (!heap_is_header(ELEM->begin)
-            || !heap_get_header(ELEM->begin)->marked) {
+        if (!ELEM->header->marked) {
             continue;
         }
 
+        MJC_LOG("copying %p from the \"from\" slab\n", ELEM->begin);
+        
         /**
          * Copy data over to new block.
          * 
@@ -123,7 +133,7 @@ void copying_collect(void) {
          * 
          * We do a little hack to copy the *contents* while not copying the HeapHeader.
          */
-        u8* contentBegin = ELEM->begin + sizeof(HeapHeader);
+        u8* contentBegin = slab_block_get_contents(ELEM);
         u32 contentSize = ELEM->size - sizeof(HeapHeader);
 
         // This also means we must create a heap header for the new block,
@@ -131,6 +141,9 @@ void copying_collect(void) {
         void* block = heap_alloc_ex(to_slab, contentSize);
         MJC_ASSERT(block != NULL);
         memcpy(block, contentBegin, contentSize);
+
+        // Free the old block (making the operation a move, not a copy)
+        heap_free_ex(from_slab, contentBegin, FALSE);
     )
     // clang-format on
 

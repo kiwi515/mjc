@@ -150,8 +150,11 @@ void linklist_insert(LinkList* list, LinkNode* at, void* object) {
         // at <-> node <-> NULL
         at->next = node;
         node->prev = at;
+
+        // Update list tail
+        list->tail = node;
     }
-    // Not inserting after list tail
+    // Generic list insert
     else {
         // node <-> next
         node->next = at->next;
@@ -222,33 +225,33 @@ void linklist_dump(const LinkList* list) {
 
     MJC_ASSERT(list != NULL);
 
-    DEBUG_LOG("[linklist] dump list: %p\n", list);
+    MJC_LOG("dump list: %p\n", list);
 
     // List head/tail (if possible)
-    DEBUG_LOG("    head: %p, tail: %p\n",
-              list->head != NULL ? list->head->object : NULL,
-              list->tail != NULL ? list->tail->object : NULL);
+    MJC_LOG("    head: %p, tail: %p\n",
+            list->head != NULL ? list->head->object : NULL,
+            list->tail != NULL ? list->tail->object : NULL);
 
     // Traverse list
-    DEBUG_LOG("    {\n");
+    MJC_LOG("    {\n");
     for (i = 0, iter = list->head; iter != NULL; i++, iter = iter->next) {
         // Indent beginning of row
         if (i % columns == 0) {
-            DEBUG_LOG("        ");
+            MJC_LOG("        ");
         }
 
         // Node object
-        DEBUG_LOG("%p", iter->object);
+        MJC_LOG("%p", iter->object);
 
         // Comma-separate if possible
         if (iter->next != NULL) {
-            DEBUG_LOG(",");
+            MJC_LOG(",");
         }
 
         // End row
         if ((i + 1) % columns == 0 || iter->next == NULL) {
-            DEBUG_LOG("\n");
+            MJC_LOG("\n");
         }
     }
-    DEBUG_LOG("    }\n");
+    MJC_LOG("    }\n");
 }

@@ -9,7 +9,6 @@
 #ifndef MINI_JAVA_COMPILER_LINKLIST_H
 #define MINI_JAVA_COMPILER_LINKLIST_H
 #include "types.h"
-#include <assert.h>
 
 // Doubly-linked list
 typedef struct LinkList {
@@ -47,7 +46,7 @@ void linklist_dump(const LinkList* list);
     {                                                                          \
         for (LinkNode* NODE = (list)->head; NODE != NULL; NODE = NODE->next) { \
             T ELEM = (T)(NODE->object);                                        \
-            MJC_ASSERT(ELEM != NULL);                                              \
+            MJC_ASSERT(ELEM != NULL);                                          \
             stmt                                                               \
         }                                                                      \
     }
@@ -65,7 +64,7 @@ void linklist_dump(const LinkList* list);
     {                                                                          \
         for (LinkNode* NODE = (list)->tail; NODE != NULL; NODE = NODE->prev) { \
             T ELEM = (T)(NODE->object);                                        \
-            MJC_ASSERT(ELEM != NULL);                                              \
+            MJC_ASSERT(ELEM != NULL);                                          \
             stmt                                                               \
         }                                                                      \
     }

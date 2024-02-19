@@ -49,7 +49,7 @@ static void search_block(void* block, u32 size);
 void marksweep_push_stack(void* frame, u32 size) {
     StackDesc* f;
 
-    DEBUG_LOG("[marksweep] push_stack %p (size:%d)\n", frame, size);
+    MJC_LOG("push_stack %p (size:%d)\n", frame, size);
 
     // Allocate and fill out stack frame structure
     f = OBJ_ALLOC(StackDesc);
@@ -67,7 +67,7 @@ void marksweep_pop_stack(void) {
     LinkNode* popped;
     StackDesc* frame;
 
-    DEBUG_LOG("[marksweep] pop_stack\n");
+    MJC_LOG("pop_stack\n");
 
     // List should never be empty when popping
     popped = linklist_pop(&frame_list);
@@ -100,11 +100,11 @@ static void search_word(u32 word) {
 
     if (heap_is_header(maybe_header) && !maybe_header->marked) {
         // If we really found a heap header pointer, mark it.
-        DEBUG_LOG("[marksweep] mark %p\n", maybe_header);
+        MJC_LOG("mark %p\n", maybe_header);
         maybe_header->marked = TRUE;
 
         // Also, recurse to continue through the object graph
-        DEBUG_LOG("[marksweep] search alloced block %p\n", maybe_header->data);
+        MJC_LOG("search alloced block %p\n", maybe_header->data);
         search_block(maybe_header->data, maybe_header->size);
     }
 }
@@ -141,25 +141,25 @@ void marksweep_mark(void) {
     LINKLIST_FOREACH_REV(&frame_list, StackDesc*,
         // List node contains stack frame descriptor
         MJC_ASSERT(ELEM->sp != NULL && ELEM->size >= sizeof(SparcFrame));
-        DEBUG_LOG("[marksweep] search stack frame: %p (size:%d)\n", ELEM->sp, ELEM->size);
+        MJC_LOG("search stack frame: %p (size:%d)\n", ELEM->sp, ELEM->size);
 
         // Search CPU local registers (compiler temporaries)
         for (i = 0; i < ARRAY_LENGTH(ELEM->sp->lreg); i++) {
-            DEBUG_LOG("  sp->lreg[%d]=%08X\n", i, ELEM->sp->lreg[i]);
+            MJC_LOG("  sp->lreg[%d]=%08X\n", i, ELEM->sp->lreg[i]);
             search_word(ELEM->sp->lreg[i]);
         }
 
         // Search CPU input/output registers
         // Ignore %i6/%i7 (SP/FP, RA)
         for (i = 0; i < 6; i++) {
-            DEBUG_LOG("  sp->ioreg[%d]=%08X\n", i, ELEM->sp->lreg[i]);
+            MJC_LOG("  sp->ioreg[%d]=%08X\n", i, ELEM->sp->lreg[i]);
             search_word(ELEM->sp->ioreg[i]);
         }
 
         // # of locals = frame space occupied by locals / size of a local.
         // (Every data type in MiniJava takes up one word (u32).)
         local_num = (ELEM->size - sizeof(SparcFrame)) / sizeof(u32);
-        DEBUG_LOG("  local_num=%d\n", local_num);
+        MJC_LOG("  local_num=%d\n", local_num);
 
         /**
          * Stack frame is aligned to 8-bytes.
@@ -189,7 +189,7 @@ void marksweep_mark(void) {
             // Use offset of first local to get the real index
             local_idx = local_first + i;
 
-            DEBUG_LOG("  sp->locals[%d (align:%d)] = %08X\n", i, local_idx,
+            MJC_LOG("  sp->locals[%d (align:%d)] = %08X\n", i, local_idx,
                       ELEM->sp->locals[local_idx]);
 
             search_word(ELEM->sp->locals[local_idx]);
@@ -206,7 +206,7 @@ void marksweep_sweep() {
     LINKLIST_FOREACH(&heap_list, HeapHeader*,
         // free unmarked objects, but don't touch any RC
         if (!ELEM->marked) {
-            DEBUG_LOG("[marksweep] sweep %p\n", ELEM);
+            MJC_LOG("sweep %p\n", ELEM);
             heap_free(ELEM->data, FALSE);
         } else {
             // unmark for next gc cycle

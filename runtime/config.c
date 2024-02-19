@@ -39,7 +39,7 @@ void config_set_gctype(GCType type) {
                                      "Generational"};
 
     MJC_ASSERT(type < GCType_Max);
-    DEBUG_LOG("[config] setting gctype to %s\n", type2str[type]);
+    MJC_LOG("setting gctype to %s\n", type2str[type]);
 
     config.gc_type = type;
 }

@@ -37,8 +37,9 @@ Slab* slab_create(u32 size) {
     MJC_ASSERT(block != NULL);
     block->begin = slab->begin;
     block->size = slab->size;
-    linklist_append(&slab->blocks, block);
+    block->alloced = FALSE;
 
+    linklist_append(&slab->blocks, block);
     return slab;
 }
 
@@ -58,8 +59,13 @@ void slab_destroy(Slab* slab) {
             continue;
         }
 
+        MJC_LOG("destroy: freeing something (%p, begin->%p)\n", ELEM, ELEM->begin);
+
         // Heap manages them despite the memory coming from this slab
-        heap_free_ex(slab, ELEM->begin, TRUE);
+        void* contents = slab_block_get_contents(ELEM);
+        if (contents != NULL) {
+            heap_free_ex(slab, contents, TRUE);
+        }
     )
     // clang-format on
 
@@ -83,6 +89,9 @@ void slab_destroy(Slab* slab) {
 void* slab_alloc(Slab* slab, u32 size) {
     MJC_ASSERT(slab != NULL);
     MJC_ASSERT(size > 0);
+
+    // Align allocations to 4 bytes
+    size = ROUND_UP(size, 4);
 
     // Find the smallest block that can fit this allocation
     SlabBlock* bestBlock = NULL;
@@ -172,9 +181,80 @@ void slab_free(Slab* slab, void* block) {
     );
     // clang-format on
 
-    // There *should* always be a parent slab block
+    // We know this memory block is from this slab,
+    // so there must be a parent SlabBlock.
     MJC_ASSERT(parent != NULL);
 
     // Free block
     parent->alloced = FALSE;
+}
+
+/**
+ * @brief Dump slab contents to the console
+ *
+ * @param slab Slab to dump
+ */
+void slab_dump(const Slab* slab) {
+    MJC_ASSERT(slab != NULL);
+
+    MJC_LOG("dump slab: %p\n", slab);
+
+    // Slab configuration
+    MJC_LOG("    begin: %p\n", slab->begin);
+    MJC_LOG("    size: %08X\n", slab->size);
+
+    // Slab blocks
+    int i = 0;
+    MJC_LOG("    blocks = {\n");
+
+    // clang-format off
+    LINKLIST_FOREACH(&slab->blocks, SlabBlock*,
+        MJC_LOG("        {\n");
+        MJC_LOG("            no: %d\n",      i++);
+        MJC_LOG("            begin: %p\n",   ELEM->begin);
+        MJC_LOG("            size: %08X\n",  ELEM->size);
+        MJC_LOG("            alloced: %s\n", ELEM->alloced ? "true" : "false");
+        MJC_LOG("        },\n");
+    )
+    // clang-format on
+
+    MJC_LOG("    }\n");
+}
+
+/**
+ * @brief Get the heap header of a SlabBlock allocation
+ *
+ * @param block Slab block
+ * @return Heap header contained in block
+ */
+HeapHeader* slab_block_get_header(const SlabBlock* block) {
+    MJC_ASSERT(block != NULL);
+    MJC_ASSERT(block->begin != NULL);
+
+    // Not actually a heap header (maybe block has no allocations?)
+    if (!heap_is_header(block->begin)) {
+        return NULL;
+    }
+
+    // If there is a header, it's right at the start
+    return (HeapHeader*)block->begin;
+}
+
+/**
+ * @brief Get the contents ("user pointer") of a slab block
+ *
+ * @param block Slab block
+ * @return Block contents
+ */
+void* slab_block_get_contents(const SlabBlock* block) {
+    MJC_ASSERT(block != NULL);
+    MJC_ASSERT(block->begin != NULL);
+
+    // If there's no heap header, the block contents are at the start
+    if (slab_block_get_header(block) == NULL) {
+        return block->begin;
+    }
+
+    // Need to skip past the heap header
+    return block->begin + sizeof(HeapHeader);
 }

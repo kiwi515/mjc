@@ -19,7 +19,11 @@
  * @param msg Message
  * @param ... Format string arguments (optional)
  */
+#ifndef NDEBUG
 #define MJC_LOG(msg, ...) debug_log(__FILE__, __LINE__, msg, ##__VA_ARGS__)
+#else
+#define MJC_LOG(msg, ...) ((void)0)
+#endif
 
 void debug_log(const char* file, int line, const char* msg, ...);
 
@@ -32,8 +36,12 @@ void debug_log(const char* file, int line, const char* msg, ...);
  *
  * @param expr Expression
  */
+#ifndef NDEBUG
 #define MJC_ASSERT(expr)                                                       \
     (expr) ? (void)0 : debug_fail_assert(__FILE__, __LINE__, #expr)
+#else
+#define MJC_ASSERT(expr) ((void)0)
+#endif
 
 /**
  * @brief Assert conditional expression
@@ -41,8 +49,12 @@ void debug_log(const char* file, int line, const char* msg, ...);
  * @param expr Expression
  * @param ... Message (can also be format string + arguments)
  */
+#ifndef NDEBUG
 #define MJC_ASSERT_MSG(expr, ...)                                              \
     (expr) ? (void)0 : debug_fail_assert(__FILE__, __LINE__, ##__VA_ARGS__)
+#else
+#define MJC_ASSERT_MSG(expr, ...) ((void)0)
+#endif
 
 void debug_fail_assert(const char* file, int line, const char* msg, ...);
 
@@ -55,21 +67,13 @@ void debug_fail_assert(const char* file, int line, const char* msg, ...);
  *
  * @param size Block size
  */
-#ifdef VERBOSE
-#define MJC_ALLOC(size) (MJC_LOG("MJC_ALLOC: size=%d\n", size), malloc(size))
-#else
 #define MJC_ALLOC(size) malloc(size)
-#endif
 
 /**
- * @brief Free a block of memory
+ * @brief Free a block of memory (NOT to our heap, but to the STL)
  *
  * @param block Memory block
  */
-#ifdef VERBOSE
-#define MJC_FREE(block) (MJC_LOG("MJC_FREE: block=%p\n", block), free(block))
-#else
 #define MJC_FREE(block) free(block)
-#endif
 
 #endif

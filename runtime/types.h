@@ -43,10 +43,4 @@ typedef int BOOL;
 // Shortcut for object allocation
 #define OBJ_ALLOC(T) ((T*)malloc(sizeof(T)))
 
-#ifndef NDEBUG
-#define DEBUG_LOG printf
-#else
-#define DEBUG_LOG (void)
-#endif
-
 #endif

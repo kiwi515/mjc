@@ -9,8 +9,10 @@
 #ifndef MINI_JAVA_COMPILER_HEAP_H
 #define MINI_JAVA_COMPILER_HEAP_H
 #include "linklist.h"
-#include "slab.h"
 #include "types.h"
+
+// Forward declarations
+typedef struct Slab;
 
 /**
  * @brief Heap block header
@@ -39,7 +41,7 @@ void heap_free(void* block, BOOL recurse);
 BOOL heap_contains(const void* addr);
 void heap_dump(void);
 
-void* heap_alloc_ex(Slab* slab, u32 size);
-void heap_free_ex(Slab* slab, void* block, BOOL recurse);
+void* heap_alloc_ex(struct Slab* slab, u32 size);
+void heap_free_ex(struct Slab* slab, void* block, BOOL recurse);
 
 #endif
