@@ -25,7 +25,7 @@ LinkList heap_list;
  * @param block Memory block
  */
 HeapHeader* heap_get_header(const void* block) {
-    assert(block != NULL);
+    MJC_ASSERT(block != NULL);
 
     // Header is placed before block contents
     return (HeapHeader*)((char*)block - sizeof(HeapHeader));
@@ -43,7 +43,7 @@ BOOL heap_is_header(const void* addr) {
     }
 
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
         // Check if the specified address is the start of any allocation
         if ((u32)addr == (u32)ELEM) {
             return TRUE;
@@ -82,7 +82,7 @@ void heap_free(void* block, BOOL recurse) {
  */
 BOOL heap_contains(const void* addr) {
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
         // Check if the specified address resides in this allocation
         if ((u32)addr >= (u32)ELEM &&
             (u32)addr < (u32)ELEM + (sizeof(HeapHeader) + ELEM->size)) {
@@ -98,11 +98,11 @@ BOOL heap_contains(const void* addr) {
  * @brief Dump contents of the heap (for debug)
  */
 void heap_dump(void) {
-    DEBUG_LOG("[heap] alloced:\n");
+    MJC_LOG("alloced:\n");
 
     // clang-format off
-    LINKLIST_FOREACH(&heap_list, HeapHeader,
-        DEBUG_LOG("[heap]    addr:%p size:%d ref:%d\n", ELEM, ELEM->size, ELEM->ref);
+    LINKLIST_FOREACH(&heap_list, HeapHeader*,
+        MJC_LOG("   addr:%p size:%d ref:%d\n", ELEM, ELEM->size, ELEM->ref);
     );
     // clang-format on
 }
@@ -126,7 +126,7 @@ void* heap_alloc_ex(Slab* slab, u32 size) {
 
     // If allocation fails, force a GC cycle
     if (header == NULL) {
-        DEBUG_LOG("[heap] running a gc cycle to free memory\n");
+        MJC_LOG("running a gc cycle to free memory\n");
         runtime_do_gc_cycle();
 
         // Try allocation one last time
@@ -134,14 +134,13 @@ void* heap_alloc_ex(Slab* slab, u32 size) {
                               : malloc(internal_size);
         if (header == NULL) {
             // Out of memory, terminate the program
-            DEBUG_LOG("[heap] cannot allocate %u from heap\n", internal_size);
+            MJC_LOG("cannot allocate %u from heap\n", internal_size);
             exit(EXIT_FAILURE);
             return NULL;
         }
     }
 
-    DEBUG_LOG("[heap] alloc %p (size:%d), userptr: %p\n", header, size,
-              header->data);
+    MJC_LOG("alloc %p (size:%d), userptr: %p\n", header, size, header->data);
 
     // Zero-initialize block
     memset(header, 0, internal_size);
@@ -168,7 +167,7 @@ void* heap_alloc_ex(Slab* slab, u32 size) {
 void heap_free_ex(Slab* slab, void* block, BOOL recurse) {
     HeapHeader* header;
 
-    assert(block != NULL);
+    MJC_ASSERT(block != NULL);
 
     header = heap_get_header(block);
 

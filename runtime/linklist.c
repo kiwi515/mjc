@@ -14,8 +14,8 @@
  * @brief Append new node to linked list
  */
 static void append_impl(LinkList* list, LinkNode* node) {
-    assert(list != NULL);
-    assert(node != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(node != NULL);
 
     if (list->head == NULL) {
         // Initialize list
@@ -36,8 +36,8 @@ static void append_impl(LinkList* list, LinkNode* node) {
  * @brief Remove node to linked list
  */
 static void remove_impl(LinkList* list, LinkNode* node) {
-    assert(list != NULL);
-    assert(node != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(node != NULL);
 
     // Handle next link
     if (node->next != NULL) {
@@ -45,7 +45,7 @@ static void remove_impl(LinkList* list, LinkNode* node) {
     }
     // If next is NULL, this is the list tail
     else {
-        assert(node == list->tail);
+        MJC_ASSERT(node == list->tail);
         list->tail = list->tail->prev;
     }
 
@@ -55,7 +55,7 @@ static void remove_impl(LinkList* list, LinkNode* node) {
     }
     // If prev is NULL, this is the list head
     else {
-        assert(node == list->head);
+        MJC_ASSERT(node == list->head);
         list->head = list->head->next;
     }
 
@@ -69,11 +69,11 @@ static void remove_impl(LinkList* list, LinkNode* node) {
  *
  * @param list Linked list
  */
-void linklist_free(LinkList* list) {
+void linklist_destroy(LinkList* list) {
     LinkNode* iter;
     LinkNode* next;
 
-    assert(list != NULL);
+    MJC_ASSERT(list != NULL);
 
     for (iter = list->head; iter != NULL; iter = next) {
         // Get next ptr early before we break any links
@@ -94,12 +94,12 @@ void linklist_free(LinkList* list) {
 void linklist_append(LinkList* list, void* object) {
     LinkNode* node;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Create new list node
-    node = malloc(sizeof(LinkNode));
-    assert(node != NULL);
+    node = OBJ_ALLOC(LinkNode);
+    MJC_ASSERT(node != NULL);
 
     // Append new node
     node->object = object;
@@ -128,6 +128,44 @@ LinkNode* linklist_pop(LinkList* list) {
 }
 
 /**
+ * @brief Insert object AFTER specified position
+ *
+ * @param list Linked list (unused, for clarity)
+ * @param at Position to insert at (new node goes AFTER)
+ * @param object Object
+ */
+void linklist_insert(LinkList* list, LinkNode* at, void* object) {
+    LinkNode* node;
+
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
+
+    // Create new list node
+    node = OBJ_ALLOC(LinkNode);
+    MJC_ASSERT(node != NULL);
+    node->object = object;
+
+    // Inserting after list tail
+    if (at->next == NULL) {
+        // at <-> node <-> NULL
+        at->next = node;
+        node->prev = at;
+
+        // Update list tail
+        list->tail = node;
+    }
+    // Generic list insert
+    else {
+        // node <-> next
+        node->next = at->next;
+        node->next->prev = node;
+        // at <-> node <-> next
+        at->next = node;
+        node->prev = at;
+    }
+}
+
+/**
  * @brief Remove object from linked list
  *
  * @param list Linked list
@@ -137,8 +175,8 @@ LinkNode* linklist_pop(LinkList* list) {
 BOOL linklist_remove(LinkList* list, void* object) {
     LinkNode* iter;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Search for object in this list
     for (iter = list->head; iter != NULL; iter = iter->next) {
@@ -161,8 +199,8 @@ BOOL linklist_remove(LinkList* list, void* object) {
 BOOL linklist_contains(const LinkList* list, void* object) {
     LinkNode* iter;
 
-    assert(list != NULL);
-    assert(object != NULL);
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
 
     // Search for object in this list
     for (iter = list->head; iter != NULL; iter = iter->next) {
@@ -185,35 +223,35 @@ void linklist_dump(const LinkList* list) {
     LinkNode* iter;
     int i;
 
-    assert(list != NULL);
+    MJC_ASSERT(list != NULL);
 
-    DEBUG_LOG("[linklist] dump list: %p\n", list);
+    MJC_LOG("dump list: %p\n", list);
 
     // List head/tail (if possible)
-    DEBUG_LOG("    head: %p, tail: %p\n",
-              list->head != NULL ? list->head->object : NULL,
-              list->tail != NULL ? list->tail->object : NULL);
+    MJC_LOG("    head: %p, tail: %p\n",
+            list->head != NULL ? list->head->object : NULL,
+            list->tail != NULL ? list->tail->object : NULL);
 
     // Traverse list
-    DEBUG_LOG("    {\n");
+    MJC_LOG("    {\n");
     for (i = 0, iter = list->head; iter != NULL; i++, iter = iter->next) {
         // Indent beginning of row
         if (i % columns == 0) {
-            DEBUG_LOG("        ");
+            MJC_LOG("        ");
         }
 
         // Node object
-        DEBUG_LOG("%p", iter->object);
+        MJC_LOG("%p", iter->object);
 
         // Comma-separate if possible
         if (iter->next != NULL) {
-            DEBUG_LOG(",");
+            MJC_LOG(",");
         }
 
         // End row
         if ((i + 1) % columns == 0 || iter->next == NULL) {
-            DEBUG_LOG("\n");
+            MJC_LOG("\n");
         }
     }
-    DEBUG_LOG("    }\n");
+    MJC_LOG("    }\n");
 }

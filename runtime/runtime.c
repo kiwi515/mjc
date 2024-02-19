@@ -31,7 +31,7 @@ typedef struct ArrayHeader {
  */
 void* runtime_alloc_object(u32 size) {
     // Copying GC needs to use slabs
-    if (config_get_gctype() != GCType_Copying) {
+    if (config_get_gctype() == GCType_Copying) {
         return copying_alloc(size);
     }
 
@@ -88,11 +88,12 @@ void runtime_set_gctype(GCType type) {
  * @param block Memory block
  */
 void runtime_ref_inc(void* block) {
-    if (block == NULL) {
-        return;
-    }
-
     if (config_get_gctype() == GCType_Refcount) {
+
+        if (block == NULL) {
+            return;
+        }
+
         refcount_increment(heap_get_header(block));
     }
 }
@@ -103,36 +104,40 @@ void runtime_ref_inc(void* block) {
  * @param block Memory block
  */
 void runtime_ref_dec(void* block) {
-    if (block == NULL) {
-        return;
-    }
-
     if (config_get_gctype() == GCType_Refcount) {
+
+        if (block == NULL) {
+            return;
+        }
+
         refcount_decrement(heap_get_header(block));
     }
 }
 
 /**
- * @brief Push a new stack frame (for mark-sweep GC)
+ * @brief Push a new stack frame
  *
  * @param frame Stack pointer
  * @param size Frame size (unaligned)
  */
 void runtime_push_stack(void* frame, u32 size) {
-    if (frame == NULL) {
-        return;
-    }
+    if (config_get_gctype() == GCType_MarkSweep ||
+        config_get_gctype() == GCType_Copying) {
 
-    if (config_get_gctype() == GCType_MarkSweep) {
+        if (frame == NULL) {
+            return;
+        }
+
         marksweep_push_stack(frame, size);
     }
 }
 
 /**
- * @brief Pop the current stack frame (for mark-sweep GC)
+ * @brief Pop the current stack frame
  */
 void runtime_pop_stack(void) {
-    if (config_get_gctype() == GCType_MarkSweep) {
+    if (config_get_gctype() == GCType_MarkSweep ||
+        config_get_gctype() == GCType_Copying) {
         marksweep_pop_stack();
     }
 }
@@ -146,11 +151,11 @@ void runtime_do_gc_cycle(void) {
     switch (t) {
     case GCType_None:
     case GCType_Refcount:
-        DEBUG_LOG("[runtime] Cannot force GC cycle on None/Refcount\n");
+        MJC_LOG("Cannot force GC cycle on None/Refcount\n");
         break;
     case GCType_MarkSweep: marksweep_collect(); break;
     case GCType_Copying:   copying_collect(); break;
-    default:               DEBUG_LOG("[runtime] Unimplemented GC cycle: type=%d\n", t); break;
+    default:               MJC_LOG("Unimplemented GC cycle: type=%d\n", t); break;
     }
 }
 

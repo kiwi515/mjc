@@ -11,12 +11,15 @@
 #include "linklist.h"
 #include "types.h"
 
+// Forward declarations
+typedef struct HeapHeader;
+
 /**
  * @brief One big "slab" of memory
  */
 typedef struct Slab {
     // Memory owned by this slab (always contiguous)
-    void* begin;
+    u8* begin;
     u32 size;
     // Slab is partitioned into blocks
     LinkList blocks;
@@ -27,14 +30,26 @@ typedef struct Slab {
  */
 typedef struct SlabBlock {
     // Memory owned by this block
-    void* begin;
+    // (If heap_is_header(begin), header is safe to use.)
+    union {
+        u8* begin;
+        struct HeapHeader* header;
+    };
+
+    // Size of this block
     u32 size;
+
     // Whether this block is in use
     BOOL alloced;
 } SlabBlock;
 
 Slab* slab_create(u32 size);
+void slab_destroy(Slab* slab);
 void* slab_alloc(Slab* slab, u32 size);
 void slab_free(Slab* slab, void* block);
+void slab_dump(const Slab* slab);
+
+struct HeapHeader* slab_block_get_header(const SlabBlock* block);
+void* slab_block_get_contents(const SlabBlock* block);
 
 #endif

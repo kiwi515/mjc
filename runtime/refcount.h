@@ -8,11 +8,13 @@
 
 #ifndef MINI_JAVA_COMPILER_REFCOUNT_H
 #define MINI_JAVA_COMPILER_REFCOUNT_H
-#include "heap.h"
 #include "types.h"
 
-void refcount_increment(HeapHeader* header);
-void refcount_decrement(HeapHeader* header);
-void refcount_decr_children(HeapHeader* header);
+// Forward declarations
+typedef struct HeapHeader;
+
+void refcount_increment(struct HeapHeader* header);
+void refcount_decrement(struct HeapHeader* header);
+void refcount_decr_children(struct HeapHeader* header);
 
 #endif

@@ -9,7 +9,6 @@
 #ifndef MINI_JAVA_COMPILER_LINKLIST_H
 #define MINI_JAVA_COMPILER_LINKLIST_H
 #include "types.h"
-#include <assert.h>
 
 // Doubly-linked list
 typedef struct LinkList {
@@ -24,11 +23,12 @@ typedef struct LinkNode {
     void* object;
 } LinkNode;
 
-void linklist_free(LinkList* list);
+void linklist_destroy(LinkList* list);
 
 void linklist_append(LinkList* list, void* object);
 BOOL linklist_remove(LinkList* list, void* object);
 LinkNode* linklist_pop(LinkList* list);
+void linklist_insert(LinkList* list, LinkNode* at, void* object);
 
 BOOL linklist_contains(const LinkList* list, void* object);
 void linklist_dump(const LinkList* list);
@@ -45,8 +45,8 @@ void linklist_dump(const LinkList* list);
 #define LINKLIST_FOREACH(list, T, stmt)                                        \
     {                                                                          \
         for (LinkNode* NODE = (list)->head; NODE != NULL; NODE = NODE->next) { \
-            T* ELEM = (T*)(NODE->object);                                      \
-            assert(ELEM != NULL);                                              \
+            T ELEM = (T)(NODE->object);                                        \
+            MJC_ASSERT(ELEM != NULL);                                          \
             stmt                                                               \
         }                                                                      \
     }
@@ -63,8 +63,8 @@ void linklist_dump(const LinkList* list);
 #define LINKLIST_FOREACH_REV(list, T, stmt)                                    \
     {                                                                          \
         for (LinkNode* NODE = (list)->tail; NODE != NULL; NODE = NODE->prev) { \
-            T* ELEM = (T*)(NODE->object);                                      \
-            assert(ELEM != NULL);                                              \
+            T ELEM = (T)(NODE->object);                                        \
+            MJC_ASSERT(ELEM != NULL);                                          \
             stmt                                                               \
         }                                                                      \
     }

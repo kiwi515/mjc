@@ -8,7 +8,8 @@
 
 #ifndef MINI_JAVA_COMPILER_TYPES_H
 #define MINI_JAVA_COMPILER_TYPES_H
-#include <assert.h>
+#include "debug.h"
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -39,10 +40,7 @@ typedef int BOOL;
 #define ROUND_UP(x, align) (((x) + (align)-1) & (-(align)))
 #define ARRAY_LENGTH(x) (sizeof((x)) / sizeof((x)[0]))
 
-#ifndef NDEBUG
-#define DEBUG_LOG printf
-#else
-#define DEBUG_LOG (void)
-#endif
+// Shortcut for object allocation
+#define OBJ_ALLOC(T) ((T*)malloc(sizeof(T)))
 
 #endif
