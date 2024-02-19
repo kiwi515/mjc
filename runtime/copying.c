@@ -119,7 +119,7 @@ void copying_collect(void) {
                       "Block is allocated but has no heap header?");
 
         // Don't copy garbage
-        if (!ELEM->header->marked) {
+        if (!slab_block_get_header(ELEM)->marked) {
             continue;
         }
 
@@ -133,7 +133,7 @@ void copying_collect(void) {
          * 
          * We do a little hack to copy the *contents* while not copying the HeapHeader.
          */
-        u8* contentBegin = slab_block_get_contents(ELEM);
+        const u8* contentBegin = slab_block_get_contents(ELEM);
         u32 contentSize = ELEM->size - sizeof(HeapHeader);
 
         // This also means we must create a heap header for the new block,

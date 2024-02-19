@@ -21,6 +21,7 @@ typedef struct Slab {
     // Memory owned by this slab (always contiguous)
     u8* begin;
     u32 size;
+
     // Slab is partitioned into blocks
     LinkList blocks;
 } Slab;
@@ -30,13 +31,7 @@ typedef struct Slab {
  */
 typedef struct SlabBlock {
     // Memory owned by this block
-    // (If heap_is_header(begin), header is safe to use.)
-    union {
-        u8* begin;
-        struct HeapHeader* header;
-    };
-
-    // Size of this block
+    u8* begin;
     u32 size;
 
     // Whether this block is in use
