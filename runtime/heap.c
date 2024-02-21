@@ -118,7 +118,7 @@ void* heap_alloc_ex(Slab* slab, u32 size) {
     HeapHeader* header;
 
     // Extra space for block header
-    const u32 internal_size = size + sizeof(HeapHeader);
+    u32 internal_size = size + sizeof(HeapHeader);
 
     // Allocate memory block
     header =

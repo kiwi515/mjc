@@ -146,7 +146,7 @@ void runtime_pop_stack(void) {
  * @brief Force a garbage collection cycle
  */
 void runtime_do_gc_cycle(void) {
-    const GCType t = config_get_gctype();
+    GCType t = config_get_gctype();
 
     switch (t) {
     case GCType_None:
