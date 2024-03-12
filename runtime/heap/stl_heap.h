@@ -22,11 +22,11 @@ typedef struct StlHeap {
     LinkList objects;
 } StlHeap;
 
-StlHeap* stlheap_create(void);
-void stlheap_destroy(void);
-void* stlheap_alloc(u32 size);
-void stlheap_free(void* block, BOOL recurse);
-BOOL stlheap_is_object(void* addr);
-void stlheap_dump(void);
+Heap* stlheap_create(void);
+void stlheap_destroy(Heap* heap);
+void* stlheap_alloc(Heap* heap, u32 size);
+void stlheap_free(Heap* heap, void* block);
+BOOL stlheap_is_object(const Heap* heap, void* addr);
+void stlheap_dump(const Heap* heap);
 
 #endif

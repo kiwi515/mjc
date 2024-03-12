@@ -15,11 +15,12 @@
 Heap* stlheap_create(void) {
     StlHeap* self = MJC_ALLOC_OBJ(StlHeap);
     MJC_ASSERT(self != NULL);
+    self->base.type = HeapType_StlHeap;
 
     // Register heap functions
     self->base.destroy = stlheap_destroy;
-    self->base.alloc = stlheap_alloc;
-    self->base.free = stlheap_free;
+    self->base.__alloc = stlheap_alloc;
+    self->base.__free = stlheap_free;
     self->base.is_object = stlheap_is_object;
     self->base.dump = stlheap_dump;
 
@@ -32,9 +33,9 @@ Heap* stlheap_create(void) {
  *
  * @param heap STL heap
  */
-void stlheap_destroy(struct Heap* heap) {
-    MJC_ASSERT(heap != NULL);
-    StlHeap* self = (StlHeap*)heap;
+void stlheap_destroy(Heap* heap) {
+    StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
+    MJC_ASSERT(self != NULL);
 
     // clang-format off
     LINKLIST_FOREACH(&self->objects, Object*,
@@ -50,9 +51,9 @@ void stlheap_destroy(struct Heap* heap) {
  * @param size Size of allocation
  * @return void* Memory block
  */
-void* stlheap_alloc(struct Heap* heap, u32 size) {
-    MJC_ASSERT(heap != NULL);
-    StlHeap* self = (StlHeap*)heap;
+void* stlheap_alloc(Heap* heap, u32 size) {
+    StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
+    MJC_ASSERT(self != NULL);
 
     // STL provides malloc/free
     void* block = malloc(size);
@@ -71,9 +72,9 @@ void* stlheap_alloc(struct Heap* heap, u32 size) {
  * @param heap STL heap
  * @param block Memory block
  */
-void stlheap_free(struct Heap* heap, void* block) {
-    MJC_ASSERT(heap != NULL);
-    StlHeap* self = (StlHeap*)heap;
+void stlheap_free(Heap* heap, void* block) {
+    StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
+    MJC_ASSERT(self != NULL);
 
     // Remove from live list
     MJC_ASSERT(block != NULL);
@@ -90,9 +91,9 @@ void stlheap_free(struct Heap* heap, void* block) {
  * @param heap STL heap
  * @param addr Address
  */
-BOOL stlheap_is_object(struct Heap* heap, void* addr) {
-    MJC_ASSERT(heap != NULL);
-    StlHeap* self = (StlHeap*)heap;
+BOOL stlheap_is_object(const Heap* heap, void* addr) {
+    const StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
+    MJC_ASSERT(self != NULL);
 
     if (addr == NULL) {
         return FALSE;
@@ -114,12 +115,12 @@ BOOL stlheap_is_object(struct Heap* heap, void* addr) {
  *
  * @param heap STL heap
  */
-void stlheap_dump(struct Heap* heap) {
-    MJC_ASSERT(heap != NULL);
-    StlHeap* self = (StlHeap*)heap;
+void stlheap_dump(const Heap* heap) {
+    const StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
+    MJC_ASSERT(self != NULL);
 
     MJC_LOG("STL heap: %p:\n", self);
-    MJC_LOG("self->objects:\n");
+    MJC_LOG("self->objects = {\n");
 
     // clang-format off
     LINKLIST_FOREACH(&self->objects, const Object*,
@@ -128,4 +129,6 @@ void stlheap_dump(struct Heap* heap) {
         heap_dump_object(ELEM);
     );
     // clang-format on
+
+    MJC_LOG("    }\n");
 }

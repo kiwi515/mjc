@@ -44,13 +44,13 @@ void heap_dump_object(const Object* obj) {
 void* heap_alloc(Heap* heap, u32 size) {
     MJC_ASSERT(heap != NULL);
     MJC_ASSERT(size > 0);
-    MJC_ASSERT_MSG(heap->alloc != NULL, "Missing alloc function");
+    MJC_ASSERT_MSG(heap->__alloc != NULL, "Missing alloc function");
 
     // Need extra space for header
     u32 full_size = size + sizeof(Object);
 
     // First attempt to allocate
-    void* block = heap->alloc(heap, full_size);
+    void* block = heap->__alloc(heap, full_size);
 
     // Run GC cycle if we need more space
     if (block == NULL) {
@@ -59,7 +59,7 @@ void* heap_alloc(Heap* heap, u32 size) {
     }
 
     // Last attempt to allocate
-    block = heap->alloc(heap, full_size);
+    block = heap->__alloc(heap, full_size);
 
     // Terminate program, we are out of memory
     if (block == NULL) {
@@ -89,7 +89,7 @@ void* heap_alloc(Heap* heap, u32 size) {
 void heap_free(Heap* heap, void* block) {
     MJC_ASSERT(heap != NULL);
     MJC_ASSERT(block != NULL);
-    MJC_ASSERT_MSG(heap->free != NULL, "Missing free function");
+    MJC_ASSERT_MSG(heap->__free != NULL, "Missing free function");
 
-    heap->free(heap, block);
+    heap->__free(heap, block);
 }

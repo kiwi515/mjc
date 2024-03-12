@@ -28,20 +28,41 @@ typedef struct Object {
 } Object;
 
 /**
+ * @brief Heap types
+ */
+typedef enum HeapType {
+    HeapType_Invalid,   // invalid
+    HeapType_StlHeap,   // malloc/free
+    HeapType_ChunkHeap, // contiguous
+    HeapType_BuddyHeap, // 2^n lists
+} HeapType;
+
+/**
  * @brief Base heap structure
  */
 typedef struct Heap {
+    // Type of this heap
+    HeapType type;
+
     // Allocate memory block from this heap
-    void* (*alloc)(struct Heap* heap, u32 size);
+    void* (*__alloc)(struct Heap* heap, u32 size);
     // Free memory block to this heap
-    void (*free)(struct Heap* heap, void* block);
+    void (*__free)(struct Heap* heap, void* block);
+
     // Check whether an address is an object
-    BOOL (*is_object)(struct Heap* heap, void* addr);
+    BOOL (*is_object)(const struct Heap* heap, void* addr);
     // Dump contents of this heap
-    void (*dump)(struct Heap* heap);
+    void (*dump)(const struct Heap* heap);
     // Destroy this heap
     void (*destroy)(struct Heap* heap);
 } Heap;
+
+/**
+ * @brief "Dynamic" cast from Heap to subtypes by checking the 'type' field.
+ * @details Returns NULL if cast is not possible.
+ */
+#define HEAP_DYNAMIC_CAST(heap, T)                                             \
+    (heap != NULL && heap->type == HeapType_##T ? (T*)heap : NULL)
 
 Object* heap_get_object(void* block);
 void heap_dump_object(const Object* obj);
