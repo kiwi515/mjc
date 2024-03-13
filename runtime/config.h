@@ -7,6 +7,7 @@
 
 #ifndef MINI_JAVA_COMPILER_CONFIG_H
 #define MINI_JAVA_COMPILER_CONFIG_H
+#include "heap.h"
 #include "types.h"
 
 /**
@@ -24,5 +25,8 @@ typedef enum {
 
 GCType config_get_gctype(void);
 void config_set_gctype(GCType type);
+
+HeapType config_get_heaptype(void);
+void config_set_heaptype(HeapType type);
 
 #endif
