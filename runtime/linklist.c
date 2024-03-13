@@ -7,7 +7,7 @@
  */
 
 #include "linklist.h"
-#include "heap.h"
+#include "heap/heap.h"
 #include <stdlib.h>
 
 /**

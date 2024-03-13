@@ -8,7 +8,7 @@
 
 #ifndef MINI_JAVA_COMPILER_HEAP_STLHEAP_H
 #define MINI_JAVA_COMPILER_HEAP_STLHEAP_H
-#include "heap.h"
+#include "heap/heap.h"
 #include "linklist.h"
 #include "types.h"
 

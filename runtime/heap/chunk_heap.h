@@ -8,7 +8,7 @@
 
 #ifndef MINI_JAVA_COMPILER_HEAP_CHUNKHEAP_H
 #define MINI_JAVA_COMPILER_HEAP_CHUNKHEAP_H
-#include "heap.h"
+#include "heap/heap.h"
 #include "linklist.h"
 #include "types.h"
 
