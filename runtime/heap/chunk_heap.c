@@ -280,7 +280,7 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         }
 
         // Object will begin at the block data
-        Object* obj = (const Object*)ELEM->begin;
+        const Object* obj = (const Object*)ELEM->begin;
 
         // If alloced was set, this really should be a real Object
         MJC_ASSERT_MSG(heap_is_object(src, ELEM->begin),
