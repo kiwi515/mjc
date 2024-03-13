@@ -51,7 +51,7 @@ GC* copying_create(void) {
  * @param gc Copying GC
  */
 void copying_destroy(GC* gc) {
-    CopyingGC* self = MJC_ALLOC_OBJ(CopyingGC);
+    CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
 
     MJC_ASSERT(self->to_heap != NULL);
@@ -69,7 +69,7 @@ void copying_destroy(GC* gc) {
  * @param gc Copying GC
  */
 void copying_collect(GC* gc) {
-    CopyingGC* self = MJC_ALLOC_OBJ(CopyingGC);
+    CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
     MJC_ASSERT(self->to_heap != NULL);
     MJC_ASSERT(self->mark_sweep != NULL);
@@ -104,7 +104,7 @@ void copying_collect(GC* gc) {
  * @param size Stack frame size (before alignment)
  */
 void copying_stack_push(GC* gc, const void* frame, u32 size) {
-    CopyingGC* self = MJC_ALLOC_OBJ(CopyingGC);
+    CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
     MJC_ASSERT(self->mark_sweep != NULL);
 
@@ -118,7 +118,7 @@ void copying_stack_push(GC* gc, const void* frame, u32 size) {
  * @param gc Copying GC
  */
 void copying_stack_pop(GC* gc) {
-    CopyingGC* self = MJC_ALLOC_OBJ(CopyingGC);
+    CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
     MJC_ASSERT(self->mark_sweep != NULL);
 
@@ -132,7 +132,7 @@ void copying_stack_pop(GC* gc) {
  * @param gc Copying GC
  */
 static void __copying_swap_heaps(GC* gc) {
-    CopyingGC* self = MJC_ALLOC_OBJ(CopyingGC);
+    CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
     MJC_ASSERT(self->to_heap != NULL);
     MJC_ASSERT(curr_heap != NULL);
