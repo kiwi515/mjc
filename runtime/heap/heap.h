@@ -46,18 +46,22 @@ typedef enum HeapType {
 typedef struct Heap {
     // Type of this heap
     HeapType type;
+    // Live objects on this heap
+    LinkList objects;
 
-    // Allocate memory block from this heap
-    void* (*__alloc)(struct Heap* heap, u32 size);
-    // Free memory block to this heap
-    void (*__free)(struct Heap* heap, void* block);
-
+    /**
+     * Use heap_* family of functions! Don't call these directly!!!
+     */
+    // Allocate object from this heap
+    Object* (*_alloc)(struct Heap* heap, u32 size);
+    // Free object to this heap
+    void (*_free)(struct Heap* heap, Object* obj);
     // Check whether an address is an object
-    BOOL (*is_object)(const struct Heap* heap, void* addr);
+    BOOL (*_is_object)(const struct Heap* heap, const void* addr);
     // Dump contents of this heap
-    void (*dump)(const struct Heap* heap);
+    void (*_dump)(const struct Heap* heap);
     // Destroy this heap
-    void (*destroy)(struct Heap* heap);
+    void (*_destroy)(struct Heap* heap);
 } Heap;
 
 /**
@@ -71,6 +75,11 @@ Object* heap_get_object(void* block);
 void heap_dump_object(const Object* obj);
 
 void* heap_alloc(Heap* heap, u32 size);
-void heap_free(Heap* heap, void* block);
+void heap_free(Heap* heap, Object* obj);
+
+BOOL heap_is_object(const Heap* heap, const void* addr);
+void heap_dump(const Heap* heap);
+
+void heap_destroy(Heap* heap);
 
 #endif

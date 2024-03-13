@@ -44,37 +44,37 @@ void heap_dump_object(const Object* obj) {
 void* heap_alloc(Heap* heap, u32 size) {
     MJC_ASSERT(heap != NULL);
     MJC_ASSERT(size > 0);
-    MJC_ASSERT_MSG(heap->__alloc != NULL, "Missing alloc function");
+    MJC_ASSERT_MSG(heap->_alloc != NULL, "Missing alloc function");
 
     // Need extra space for header
     u32 full_size = size + sizeof(Object);
 
     // First attempt to allocate
-    void* block = heap->__alloc(heap, full_size);
+    Object* obj = heap->_alloc(heap, full_size);
 
     // Run GC cycle if we need more space
-    if (block == NULL) {
+    if (obj == NULL) {
         MJC_LOG("cant alloc %08X bytes, forcing gc cycle\n", full_size);
-        runtime_do_gc_cycle();
+        runtime_collect();
     }
 
     // Last attempt to allocate
-    block = heap->__alloc(heap, full_size);
+    obj = heap->_alloc(heap, full_size);
 
     // Terminate program, we are out of memory
-    if (block == NULL) {
+    if (obj == NULL) {
         MJC_LOG("cant alloc %08X!!!\n", full_size);
         exit(EXIT_FAILURE);
         return NULL;
     }
 
     // Fill out object header
-    Object* obj = (Object*)block;
     obj->size = size;
     obj->marked = FALSE;
     obj->ref = 0;
 
     MJC_LOG("alloc %p (size:%d), userptr: %p\n", obj, size, obj->data);
+    linklist_append(&heap->objects, obj);
 
     // Header is hidden from the user
     return obj->data;
@@ -84,12 +84,50 @@ void* heap_alloc(Heap* heap, u32 size) {
  * @brief Release memory to the specified heap
  *
  * @param heap Heap to use
- * @param block Memory block
+ * @param obj Object to free
  */
-void heap_free(Heap* heap, void* block) {
+void heap_free(Heap* heap, Object* obj) {
     MJC_ASSERT(heap != NULL);
-    MJC_ASSERT(block != NULL);
-    MJC_ASSERT_MSG(heap->__free != NULL, "Missing free function");
+    MJC_ASSERT(obj != NULL);
+    MJC_ASSERT(heap->_free != NULL);
 
-    heap->__free(heap, block);
+    linklist_remove(&heap->objects, obj);
+    heap->_free(heap, obj);
+}
+
+/**
+ * @brief Check whether an address is an object
+ *
+ * @param heap Heap to use
+ * @param addr Address
+ */
+BOOL heap_is_object(const Heap* heap, const void* addr) {
+    MJC_ASSERT(heap != NULL);
+    MJC_ASSERT(heap->_is_object != NULL);
+
+    return heap->_is_object(heap, addr);
+}
+
+/**
+ * @brief Dump contents of this heap
+ *
+ * @param heap Heap to use
+ */
+void heap_dump(const Heap* heap) {
+    MJC_ASSERT(heap != NULL);
+    MJC_ASSERT(heap->_dump != NULL);
+
+    heap->_dump(heap);
+}
+
+/**
+ * @brief Destroy this heap
+ *
+ * @param heap Heap to use
+ */
+void heap_destroy(Heap* heap) {
+    MJC_ASSERT(heap != NULL);
+    MJC_ASSERT(heap->_destroy != NULL);
+
+    heap->_destroy(heap);
 }

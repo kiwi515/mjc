@@ -50,19 +50,19 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
 
         // Set GC type in the runtime
         frag = TranslateUtil.joinFragments(
-                new EVAL(new CALL(new NAME("config_set_gctype"),
+                new EVAL(new CALL(new NAME("config_set_gc_type"),
                         new CONST(Config.getGcType().ordinal()))),
                 frag);
 
         // Free memory allocated by the runtime
         frag = TranslateUtil.joinFragments(
                 frag,
-                new EVAL(new CALL(new NAME("runtime_cleanup"))));
+                new EVAL(new CALL(new NAME("runtime_exit"))));
 
         // Dump heap for debug at the end of execution
         frag = TranslateUtil.joinFragments(
                 frag,
-                new EVAL(new CALL(new NAME("runtime_debug_dumpheap"))));
+                new EVAL(new CALL(new NAME("runtime_dump_heap"))));
 
         // Dress fragment
         frag = TranslateUtil.dressFragment(frag, n.nameOfMainClass.s, "main");

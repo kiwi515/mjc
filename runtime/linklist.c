@@ -81,7 +81,7 @@ void linklist_destroy(LinkList* list) {
 
         // Isolate node and free memory
         remove_impl(list, iter);
-        free(iter);
+        MJC_FREE(iter);
     }
 }
 

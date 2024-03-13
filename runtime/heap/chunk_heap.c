@@ -30,14 +30,14 @@ Heap* chunkheap_create(u32 size) {
     self->base.type = HeapType_ChunkHeap;
 
     // Register heap functions
-    self->base.destroy = chunkheap_destroy;
-    self->base.__alloc = chunkheap_alloc;
-    self->base.__free = chunkheap_free;
-    self->base.is_object = chunkheap_is_object;
-    self->base.dump = chunkheap_dump;
+    self->base._destroy = chunkheap_destroy;
+    self->base._alloc = chunkheap_alloc;
+    self->base._free = chunkheap_free;
+    self->base._is_object = chunkheap_is_object;
+    self->base._dump = chunkheap_dump;
 
     // Underlying memory
-    void* begin = malloc(size);
+    void* begin = MJC_ALLOC(size);
     MJC_ASSERT(begin != NULL);
 
     // Important for copying: This tells us the range of the whole thing
@@ -68,22 +68,22 @@ void chunkheap_destroy(Heap* heap) {
 
     // Free memory used for linked list
     linklist_destroy(&self->blocks);
-    // Release memory chunk
-    free(self->begin);
 
-    // Just in case
-    self->begin = NULL;
-    self->size = 0;
+    // Release memory chunk
+    MJC_ASSERT(self->begin != NULL);
+    MJC_FREE(self->begin);
+
+    MJC_FREE(self);
 }
 
 /**
- * @brief Allocate memory block from this heap
+ * @brief Allocate object from this heap
  *
  * @param heap Chunk heap
  * @param size Size of allocation
- * @return void* Memory block
+ * @return Object* New object
  */
-void* chunkheap_alloc(Heap* heap, u32 size) {
+Object* chunkheap_alloc(Heap* heap, u32 size) {
     ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
 
@@ -144,21 +144,21 @@ void* chunkheap_alloc(Heap* heap, u32 size) {
     bestBlock->alloced = TRUE;
 
     // Strip ChunkBlock "header" for user
-    return bestBlock->begin;
+    return (Object*)bestBlock->begin;
 }
 
 /**
- * @brief Free memory block to this heap
+ * @brief Free object to this heap
  *
  * @param heap Chunk heap
- * @param block Memory block
+ * @param obj Object to free
  */
-void chunkheap_free(Heap* heap, void* block) {
+void chunkheap_free(Heap* heap, Object* obj) {
     ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
 
-    MJC_ASSERT_MSG((u8*)block >= (u8*)self->begin &&
-                       (u8*)block < (u8*)self->begin + self->size,
+    MJC_ASSERT_MSG((u8*)obj >= (u8*)self->begin &&
+                       (u8*)obj < (u8*)self->begin + self->size,
                    "Wrong heap pal!!!");
 
     // Find the chunk block that contains this memory
@@ -172,8 +172,8 @@ void chunkheap_free(Heap* heap, void* block) {
         }
 
         // Does the memory fall within this block?
-        if ((u32)block >= (u32)ELEM->begin &&
-            (u32)block < (u32)ELEM->begin + ELEM->size) {
+        if ((u8*)obj >= (u8*)ELEM->begin &&
+            (u8*)obj < (u8*)ELEM->begin + ELEM->size) {
             parent = ELEM;
             break;
         }
@@ -196,7 +196,7 @@ void chunkheap_free(Heap* heap, void* block) {
  * @param heap Chunk heap
  * @param addr Address
  */
-BOOL chunkheap_is_object(const Heap* heap, void* addr) {
+BOOL chunkheap_is_object(const Heap* heap, const void* addr) {
     const ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
 
@@ -253,4 +253,56 @@ void chunkheap_dump(const Heap* heap) {
     // clang-format on
 
     MJC_LOG("    }\n");
+}
+
+/**
+ * @brief Move live allocations of one chunk heap to another
+ * @note DON'T FORGET TO FIRST USE __marksweep_mark!!!
+ *
+ * @param src Source heap (move from)
+ * @param dst Destination heap (move to)
+ */
+void chunkheap_purify(Heap* src, Heap* dst) {
+    MJC_ASSERT(src != NULL);
+    MJC_ASSERT(dst != NULL);
+
+    ChunkHeap* csrc = HEAP_DYNAMIC_CAST(src, ChunkHeap);
+    MJC_ASSERT_MSG(csrc != NULL, "Source heap is not a chunk heap");
+
+    ChunkHeap* cdst = HEAP_DYNAMIC_CAST(dst, ChunkHeap);
+    MJC_ASSERT_MSG(cdst != NULL, "Destination heap is not a chunk heap");
+
+    // clang-format off
+    LINKLIST_FOREACH(&csrc->blocks, const ChunkBlock*,
+        // Don't need to copy unused blocks
+        if (!ELEM->alloced) {
+            continue;
+        }
+
+        // Object will begin at the block data
+        Object* obj = (const Object*)ELEM->begin;
+
+        // If alloced was set, this really should be a real Object
+        MJC_ASSERT_MSG(heap_is_object(src, ELEM->begin),
+                      "Block is incorrectly marked as alloced");
+
+        // Don't copy garbage
+        if (!obj->marked) {
+            continue;
+        }
+
+        // We do a little hack to copy the *contents* while not copying the header.
+        MJC_LOG("copying object at %p\n", obj);
+        const u8* contentBegin = ELEM->begin - sizeof(Object);
+        u32 contentSize = ELEM->size - sizeof(Object);
+
+        // Create a new header for the content and copy over the Object
+        void* block = heap_alloc(dst, contentSize);
+        MJC_ASSERT(block != NULL);
+        memcpy(block, contentBegin, contentSize);
+
+        // Free the old block (making the operation a move, not a copy)
+        heap_free(src, contentBegin);
+    )
+    // clang-format on
 }
