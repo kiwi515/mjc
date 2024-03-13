@@ -19,5 +19,6 @@ HeapType config_get_heap_type(void);
 void config_set_heap_type(HeapType type);
 
 u32 config_get_heap_size(void);
+void config_set_heap_size(u32 size);
 
 #endif

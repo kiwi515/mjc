@@ -275,7 +275,7 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
                 assign = TranslateUtil.joinFragments(
                         assign,
                         new EVAL(new CALL(
-                                new NAME("runtime_ref_inc"),
+                                new NAME("runtime_ref_incr"),
                                 lhs)));
             }
 
@@ -297,7 +297,7 @@ public final class IRStatementVisitor implements SyntaxTreeVisitor<Stm> {
             if (decrement) {
                 assign = TranslateUtil.joinFragments(
                         new EVAL(new CALL(
-                                new NAME("runtime_ref_dec"),
+                                new NAME("runtime_ref_decr"),
                                 lhs)),
                         assign);
             }

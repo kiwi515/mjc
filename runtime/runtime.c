@@ -72,10 +72,23 @@ void runtime_enter(void) {
     MJC_ASSERT(curr_gc != NULL);
 }
 
-void runtime_collect(void);
+/**
+ * @brief Perform a GC cycle
+ */
+void runtime_collect(void) {
+    MJC_ASSERT(curr_gc != NULL);
+    gc_collect(curr_gc);
+}
 
+/**
+ * @brief Terminate the MJC runtime
+ */
 void runtime_exit(void) {
-    ;
+    MJC_ASSERT(curr_gc != NULL);
+    gc_destroy(curr_gc);
+
+    MJC_ASSERT(curr_heap != NULL);
+    heap_destroy(curr_heap);
 }
 
 /**
@@ -85,12 +98,8 @@ void runtime_exit(void) {
  * @return void* Object memory
  */
 void* runtime_alloc_object(u32 size) {
-    // Copying GC needs to use slabs
-    if (config_get_gc_type() == GcType_Copying) {
-        return copying_alloc(size);
-    }
-
-    return heap_alloc(size);
+    MJC_ASSERT(curr_heap != NULL);
+    return heap_alloc(curr_heap, size);
 }
 
 /**
@@ -115,17 +124,11 @@ void* runtime_alloc_array(u32 size, u32 n) {
 }
 
 /**
- * @brief Cleanup any runtime-allocated memory before exiting
- */
-void runtime_exit(void) {
-    // TODO
-}
-
-/**
  * @brief Dump contents of the heap (for debug)
  */
 void runtime_dump_heap(void) {
-    heap_dump();
+    MJC_ASSERT(curr_heap != NULL);
+    heap_dump(curr_heap);
 }
 
 /**
@@ -134,7 +137,29 @@ void runtime_dump_heap(void) {
  * @param type New GC type
  */
 void runtime_set_gc_type(GcType type) {
+    MJC_ASSERT(type < GcType_Max);
     config_set_gc_type(type);
+}
+
+/**
+ * @brief Change the runtime heap type
+ *
+ * @param type New heap type
+ */
+void runtime_set_heap_type(HeapType type) {
+    MJC_ASSERT(type < HeapType_Max);
+    config_set_heap_type(type);
+}
+
+/**
+ * @brief Change the runtime heap size
+ * @note Doesn't apply to STL heap
+ *
+ * @param size New heap size
+ */
+void runtime_set_heap_size(u32 size) {
+    MJC_ASSERT(size > 0);
+    config_set_heap_size(size);
 }
 
 /**
@@ -142,14 +167,11 @@ void runtime_set_gc_type(GcType type) {
  *
  * @param block Memory block
  */
-void runtime_ref_inc(void* block) {
-    if (config_get_gc_type() == GcType_RefCount) {
+void runtime_ref_incr(void* block) {
+    MJC_ASSERT(curr_gc != NULL);
 
-        if (block == NULL) {
-            return;
-        }
-
-        refcount_increment(heap_get_header(block));
+    if (block != NULL) {
+        gc_ref_incr(curr_gc, heap_get_object(block));
     }
 }
 
@@ -158,14 +180,11 @@ void runtime_ref_inc(void* block) {
  *
  * @param block Memory block
  */
-void runtime_ref_dec(void* block) {
-    if (config_get_gc_type() == GcType_RefCount) {
+void runtime_ref_decr(void* block) {
+    MJC_ASSERT(curr_gc != NULL);
 
-        if (block == NULL) {
-            return;
-        }
-
-        refcount_decrement(heap_get_header(block));
+    if (block != NULL) {
+        gc_ref_decr(curr_gc, heap_get_object(block));
     }
 }
 
@@ -175,49 +194,25 @@ void runtime_ref_dec(void* block) {
  * @param frame Stack pointer
  * @param size Frame size (unaligned)
  */
-void runtime_push_stack(void* frame, u32 size) {
-    if (config_get_gc_type() == GcType_MarkSweep ||
-        config_get_gc_type() == GcType_Copying) {
-
-        if (frame == NULL) {
-            return;
-        }
-
-        marksweep_push_stack(frame, size);
-    }
+void runtime_stack_push(const void* frame, u32 size) {
+    MJC_ASSERT(curr_gc != NULL);
+    gc_stack_push(curr_gc, frame, size);
 }
 
 /**
  * @brief Pop the current stack frame
  */
-void runtime_pop_stack(void) {
-    if (config_get_gc_type() == GcType_MarkSweep ||
-        config_get_gc_type() == GcType_Copying) {
-        marksweep_pop_stack();
-    }
+void runtime_stack_pop(void) {
+    MJC_ASSERT(curr_gc != NULL);
+    gc_stack_pop(curr_gc);
 }
 
 /**
  * @brief Force a garbage collection cycle
  */
 void runtime_collect(void) {
-    GcType t = config_get_gc_type();
-
-    switch (t) {
-    case GcType_None:
-    case GcType_RefCount:
-        MJC_LOG("Cannot force GC cycle on None/RefCount\n");
-        break;
-    case GcType_MarkSweep:
-        marksweep_collect();
-        break;
-    case GcType_Copying:
-        copying_collect();
-        break;
-    default:
-        MJC_LOG("Unimplemented GC cycle: type=%d\n", t);
-        break;
-    }
+    MJC_ASSERT(curr_gc != NULL);
+    gc_collect(curr_gc);
 }
 
 /**

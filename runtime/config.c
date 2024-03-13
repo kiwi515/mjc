@@ -74,3 +74,11 @@ void config_set_heap_type(HeapType type) {
 u32 config_get_heap_size(void) {
     return config.heap_size;
 }
+
+/**
+ * @brief Set the runtime heap size
+ */
+void config_set_heap_size(u32 size) {
+    MJC_ASSERT(size > 0);
+    config.heap_size = size;
+}
