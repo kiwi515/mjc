@@ -31,8 +31,6 @@ typedef struct Object {
  * @brief Heap types
  */
 typedef enum HeapType {
-    HeapType_Invalid, // invalid
-
     HeapType_StlHeap,   // malloc/free
     HeapType_ChunkHeap, // contiguous
     HeapType_BuddyHeap, // 2^n lists

@@ -31,6 +31,9 @@ Heap* curr_heap = NULL;
 // Current garbage collector
 GC* curr_gc = NULL;
 
+static BOOL __runtime_valid_heap(void);
+static BOOL __runtime_valid_gc(void);
+
 /**
  * @brief Initialize the MJC runtime
  */
@@ -55,6 +58,8 @@ void runtime_enter(void) {
 
     // Setup garbage collector
     switch (config_get_gc_type()) {
+    case GcType_None:
+        break;
     case GcType_RefCountGC:
         curr_gc = refcount_create();
         break;
@@ -64,20 +69,23 @@ void runtime_enter(void) {
     case GcType_CopyingGC:
         curr_gc = copying_create();
         break;
+    case GcType_GenerationalGC:
+        MJC_ASSERT_MSG(FALSE, "Not implemented");
+        break;
     default:
         MJC_ASSERT(FALSE);
         break;
     }
 
-    MJC_ASSERT(curr_heap != NULL);
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_heap());
+    MJC_ASSERT(__runtime_valid_gc());
 }
 
 /**
  * @brief Perform a GC cycle
  */
 void runtime_collect(void) {
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_gc());
     gc_collect(curr_gc);
 }
 
@@ -85,10 +93,10 @@ void runtime_collect(void) {
  * @brief Terminate the MJC runtime
  */
 void runtime_exit(void) {
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_gc());
     gc_destroy(curr_gc);
 
-    MJC_ASSERT(curr_heap != NULL);
+    MJC_ASSERT(__runtime_valid_heap());
     heap_destroy(curr_heap);
 }
 
@@ -99,7 +107,7 @@ void runtime_exit(void) {
  * @return void* Object memory
  */
 void* runtime_alloc_object(u32 size) {
-    MJC_ASSERT(curr_heap != NULL);
+    MJC_ASSERT(__runtime_valid_heap());
     return heap_alloc(curr_heap, size);
 }
 
@@ -128,7 +136,7 @@ void* runtime_alloc_array(u32 size, u32 n) {
  * @brief Dump contents of the heap (for debug)
  */
 void runtime_dump_heap(void) {
-    MJC_ASSERT(curr_heap != NULL);
+    MJC_ASSERT(__runtime_valid_heap());
     heap_dump(curr_heap);
 }
 
@@ -169,7 +177,7 @@ void runtime_set_heap_size(u32 size) {
  * @param block Memory block
  */
 void runtime_ref_incr(void* block) {
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_gc());
 
     if (block != NULL) {
         gc_ref_incr(curr_gc, heap_get_object(block));
@@ -182,7 +190,7 @@ void runtime_ref_incr(void* block) {
  * @param block Memory block
  */
 void runtime_ref_decr(void* block) {
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_gc());
 
     if (block != NULL) {
         gc_ref_decr(curr_gc, heap_get_object(block));
@@ -196,7 +204,7 @@ void runtime_ref_decr(void* block) {
  * @param size Frame size (unaligned)
  */
 void runtime_stack_push(const void* frame, u32 size) {
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_gc());
     gc_stack_push(curr_gc, frame, size);
 }
 
@@ -204,7 +212,7 @@ void runtime_stack_push(const void* frame, u32 size) {
  * @brief Pop the current stack frame
  */
 void runtime_stack_pop(void) {
-    MJC_ASSERT(curr_gc != NULL);
+    MJC_ASSERT(__runtime_valid_gc());
     gc_stack_pop(curr_gc);
 }
 
@@ -224,4 +232,18 @@ void runtime_print_integer(s32 value) {
  */
 void runtime_print_boolean(s32 value) {
     printf("%s\n", value ? "True" : "False");
+}
+
+/**
+ * @brief Check whether the current heap is valid
+ */
+static BOOL __runtime_valid_heap(void) {
+    return curr_heap != NULL;
+}
+
+/**
+ * @brief Check whether the current GC is valid
+ */
+static BOOL __runtime_valid_gc(void) {
+    return curr_gc != NULL || config_get_gc_type() == GcType_None;
 }

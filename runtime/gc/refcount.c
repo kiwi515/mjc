@@ -80,11 +80,10 @@ void refcount_ref_decr(GC* gc, Object* obj) {
     if (obj->ref == 0) {
         MJC_LOG("free %p\n", obj);
 
-        // Safely free if unreferenced
-        heap_free(curr_heap, obj);
-
         // Decrement refcount of children
         __refcount_ref_decr_recurse(gc, obj);
+        // Safely free if unreferenced
+        heap_free(curr_heap, obj);
     }
 }
 

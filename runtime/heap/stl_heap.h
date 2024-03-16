@@ -18,8 +18,6 @@
 typedef struct StlHeap {
     // Common heap structure
     Heap base;
-    // List of live objects
-    LinkList objects;
 } StlHeap;
 
 Heap* stlheap_create(void);

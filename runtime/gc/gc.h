@@ -17,12 +17,11 @@ typedef struct Object;
  * @brief Garbage collector types
  */
 typedef enum {
-    GcType_Invalid, // invalid
-
-    GcType_None,        // no gc
-    GcType_RefCountGC,  // reference counting
-    GcType_MarkSweepGC, // mark-sweep
-    GcType_CopyingGC,   // copying
+    GcType_None,           // no gc
+    GcType_RefCountGC,     // reference counting
+    GcType_MarkSweepGC,    // mark-sweep
+    GcType_CopyingGC,      // copying
+    GcType_GenerationalGC, // generational
 
     GcType_Max
 } GcType;

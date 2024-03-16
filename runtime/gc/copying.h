@@ -14,6 +14,9 @@
 // Forward declarations
 typedef struct Heap;
 
+/**
+ * @brief Copying GC
+ */
 typedef struct CopyingGC {
     // Common GC structure
     GC base;

@@ -38,7 +38,7 @@ void stlheap_destroy(Heap* heap) {
     MJC_ASSERT(self != NULL);
 
     // clang-format off
-    LINKLIST_FOREACH(&self->objects, Object*,
+    LINKLIST_FOREACH(&self->base.objects, Object*,
         stlheap_free(heap, ELEM);
     );
     // clang-format on
@@ -95,7 +95,7 @@ BOOL stlheap_is_object(const Heap* heap, const void* addr) {
     }
 
     // clang-format off
-    LINKLIST_FOREACH(&self->objects, const Object*,
+    LINKLIST_FOREACH(&self->base.objects, const Object*,
         if ((u8*)addr == (u8*)ELEM) {
             return TRUE;
         }
@@ -118,12 +118,12 @@ void stlheap_dump(const Heap* heap) {
     MJC_LOG("self->objects = {\n");
 
     // clang-format off
-    LINKLIST_FOREACH(&self->objects, const Object*,
+    LINKLIST_FOREACH(&self->base.objects, const Object*,
         // indent
         MJC_LOG("   ");
         heap_dump_object(ELEM);
     );
     // clang-format on
 
-    MJC_LOG("    }\n");
+    MJC_LOG("}\n");
 }

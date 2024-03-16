@@ -15,10 +15,8 @@
  * @param gc Garbage collector
  */
 void gc_collect(GC* gc) {
-    MJC_ASSERT(gc != NULL);
-
     // Functionality is optional
-    if (gc->_collect != NULL) {
+    if (gc != NULL && gc->_collect != NULL) {
         gc->_collect(gc);
     }
 }
@@ -31,12 +29,11 @@ void gc_collect(GC* gc) {
  * @param size Stack frame size (before alignment)
  */
 void gc_stack_push(GC* gc, const void* frame, u32 size) {
-    MJC_ASSERT(gc != NULL);
     MJC_ASSERT(frame != NULL);
     MJC_ASSERT(size > 0);
 
     // Functionality is optional
-    if (gc->_stack_push != NULL) {
+    if (gc != NULL && gc->_stack_push != NULL) {
         gc->_stack_push(gc, frame, size);
     }
 }
@@ -47,10 +44,8 @@ void gc_stack_push(GC* gc, const void* frame, u32 size) {
  * @param gc Garbage collector
  */
 void gc_stack_pop(GC* gc) {
-    MJC_ASSERT(gc != NULL);
-
     // Functionality is optional
-    if (gc->_stack_pop != NULL) {
+    if (gc != NULL && gc->_stack_pop != NULL) {
         gc->_stack_pop(gc);
     }
 }
@@ -62,11 +57,10 @@ void gc_stack_pop(GC* gc) {
  * @param obj Object
  */
 void gc_ref_incr(GC* gc, Object* obj) {
-    MJC_ASSERT(gc != NULL);
     MJC_ASSERT(obj != NULL);
 
     // Functionality is optional
-    if (gc->_ref_incr != NULL) {
+    if (gc != NULL && gc->_ref_incr != NULL) {
         gc->_ref_incr(gc, obj);
     }
 }
@@ -78,11 +72,10 @@ void gc_ref_incr(GC* gc, Object* obj) {
  * @param obj Object
  */
 void gc_ref_decr(GC* gc, Object* obj) {
-    MJC_ASSERT(gc != NULL);
     MJC_ASSERT(obj != NULL);
 
     // Functionality is optional
-    if (gc->_ref_decr != NULL) {
+    if (gc != NULL && gc->_ref_decr != NULL) {
         gc->_ref_decr(gc, obj);
     }
 }
@@ -93,10 +86,8 @@ void gc_ref_decr(GC* gc, Object* obj) {
  * @param gc Garbage collector
  */
 void gc_destroy(GC* gc) {
-    MJC_ASSERT(gc != NULL);
-
     // Functionality is optional
-    if (gc->_destroy != NULL) {
+    if (gc != NULL && gc->_destroy != NULL) {
         gc->_destroy(gc);
     }
 }
