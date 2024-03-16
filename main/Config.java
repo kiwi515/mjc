@@ -145,7 +145,7 @@ public final class Config {
                 String.format("%-20s%s", "--heap=<type>",
                         "Set <type> as the program's heap type."),
                 String.format("%-20s%s", "",
-                        enum2options(GcType.class)));
+                        enum2options(HeapType.class)));
 
         System.out.println(str);
     }
