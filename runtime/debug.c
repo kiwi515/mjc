@@ -56,7 +56,7 @@ void debug_fail_assert(const char* file, int line, const char* msg, ...) {
 
     // Format file/line information
     snprintf(allbuf, sizeof(allbuf),
-             "ASSERTION FAILED!\n%s\nFile: %s, line %d.", msgbuf, file, line);
+             "ASSERTION FAILED!\n%s\nFile: %s, line %d.\n", msgbuf, file, line);
 
     // Write to stderr
     fprintf(stderr, allbuf);
