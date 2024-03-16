@@ -8,6 +8,7 @@
 #ifndef MINI_JAVA_COMPILER_DEBUG_H
 #define MINI_JAVA_COMPILER_DEBUG_H
 // #include "types.h" <-- Must NOT include to avoid circular dependency
+#include <stdlib.h>
 
 /*=======================================================*/
 /*                       Logging                         */

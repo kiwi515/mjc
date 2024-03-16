@@ -8,13 +8,15 @@
 
 #include "runtime.h"
 #include "config.h"
-#include "copying.h"
-#include "heap.h"
-#include "marksweep.h"
-#include "refcount.h"
+#include "gc/copying.h"
+#include "gc/gc.h"
+#include "gc/marksweep.h"
+#include "gc/refcount.h"
+#include "heap/chunk_heap.h"
+#include "heap/stl_heap.h"
 
 /**
- * @brief Array header
+ * @brief Array object header
  */
 typedef struct ArrayHeader {
     // Array length
@@ -23,6 +25,81 @@ typedef struct ArrayHeader {
     u8 data[]; // at 0x4
 } ArrayHeader;
 
+// Current heap
+Heap* curr_heap = NULL;
+
+// Current garbage collector
+GC* curr_gc = NULL;
+
+static BOOL __runtime_valid_heap(void);
+static BOOL __runtime_valid_gc(void);
+
+/**
+ * @brief Initialize the MJC runtime
+ */
+void runtime_enter(void) {
+    u32 heap_size = config_get_heap_size();
+
+    // Setup heap
+    switch (config_get_heap_type()) {
+    case HeapType_StlHeap:
+        curr_heap = stlheap_create();
+        break;
+    case HeapType_ChunkHeap:
+        curr_heap = chunkheap_create(heap_size);
+        break;
+    case HeapType_BuddyHeap:
+        MJC_ASSERT_MSG(FALSE, "Not implemented");
+        break;
+    default:
+        MJC_ASSERT(FALSE);
+        break;
+    }
+
+    // Setup garbage collector
+    switch (config_get_gc_type()) {
+    case GcType_None:
+        break;
+    case GcType_RefCountGC:
+        curr_gc = refcount_create();
+        break;
+    case GcType_MarkSweepGC:
+        curr_gc = marksweep_create();
+        break;
+    case GcType_CopyingGC:
+        curr_gc = copying_create();
+        break;
+    case GcType_GenerationalGC:
+        MJC_ASSERT_MSG(FALSE, "Not implemented");
+        break;
+    default:
+        MJC_ASSERT(FALSE);
+        break;
+    }
+
+    MJC_ASSERT(__runtime_valid_heap());
+    MJC_ASSERT(__runtime_valid_gc());
+}
+
+/**
+ * @brief Perform a GC cycle
+ */
+void runtime_collect(void) {
+    MJC_ASSERT(__runtime_valid_gc());
+    gc_collect(curr_gc);
+}
+
+/**
+ * @brief Terminate the MJC runtime
+ */
+void runtime_exit(void) {
+    MJC_ASSERT(__runtime_valid_gc());
+    gc_destroy(curr_gc);
+
+    MJC_ASSERT(__runtime_valid_heap());
+    heap_destroy(curr_heap);
+}
+
 /**
  * @brief Allocate memory for a MiniJava object
  *
@@ -30,12 +107,8 @@ typedef struct ArrayHeader {
  * @return void* Object memory
  */
 void* runtime_alloc_object(u32 size) {
-    // Copying GC needs to use slabs
-    if (config_get_gctype() == GCType_Copying) {
-        return copying_alloc(size);
-    }
-
-    return heap_alloc(size);
+    MJC_ASSERT(__runtime_valid_heap());
+    return heap_alloc(curr_heap, size);
 }
 
 /**
@@ -60,17 +133,11 @@ void* runtime_alloc_array(u32 size, u32 n) {
 }
 
 /**
- * @brief Cleanup any runtime-allocated memory before exiting
- */
-void runtime_cleanup(void) {
-    // TODO
-}
-
-/**
  * @brief Dump contents of the heap (for debug)
  */
-void runtime_debug_dumpheap(void) {
-    heap_dump();
+void runtime_dump_heap(void) {
+    MJC_ASSERT(__runtime_valid_heap());
+    heap_dump(curr_heap);
 }
 
 /**
@@ -78,8 +145,30 @@ void runtime_debug_dumpheap(void) {
  *
  * @param type New GC type
  */
-void runtime_set_gctype(GCType type) {
-    config_set_gctype(type);
+void runtime_set_gc_type(GcType type) {
+    MJC_ASSERT(type < GcType_Max);
+    config_set_gc_type(type);
+}
+
+/**
+ * @brief Change the runtime heap type
+ *
+ * @param type New heap type
+ */
+void runtime_set_heap_type(HeapType type) {
+    MJC_ASSERT(type < HeapType_Max);
+    config_set_heap_type(type);
+}
+
+/**
+ * @brief Change the runtime heap size
+ * @note Doesn't apply to STL heap
+ *
+ * @param size New heap size
+ */
+void runtime_set_heap_size(u32 size) {
+    MJC_ASSERT(size > 0);
+    config_set_heap_size(size);
 }
 
 /**
@@ -87,14 +176,11 @@ void runtime_set_gctype(GCType type) {
  *
  * @param block Memory block
  */
-void runtime_ref_inc(void* block) {
-    if (config_get_gctype() == GCType_Refcount) {
+void runtime_ref_incr(void* block) {
+    MJC_ASSERT(__runtime_valid_gc());
 
-        if (block == NULL) {
-            return;
-        }
-
-        refcount_increment(heap_get_header(block));
+    if (block != NULL) {
+        gc_ref_incr(curr_gc, heap_get_object(block));
     }
 }
 
@@ -103,14 +189,11 @@ void runtime_ref_inc(void* block) {
  *
  * @param block Memory block
  */
-void runtime_ref_dec(void* block) {
-    if (config_get_gctype() == GCType_Refcount) {
+void runtime_ref_decr(void* block) {
+    MJC_ASSERT(__runtime_valid_gc());
 
-        if (block == NULL) {
-            return;
-        }
-
-        refcount_decrement(heap_get_header(block));
+    if (block != NULL) {
+        gc_ref_decr(curr_gc, heap_get_object(block));
     }
 }
 
@@ -120,43 +203,17 @@ void runtime_ref_dec(void* block) {
  * @param frame Stack pointer
  * @param size Frame size (unaligned)
  */
-void runtime_push_stack(void* frame, u32 size) {
-    if (config_get_gctype() == GCType_MarkSweep ||
-        config_get_gctype() == GCType_Copying) {
-
-        if (frame == NULL) {
-            return;
-        }
-
-        marksweep_push_stack(frame, size);
-    }
+void runtime_stack_push(const void* frame, u32 size) {
+    MJC_ASSERT(__runtime_valid_gc());
+    gc_stack_push(curr_gc, frame, size);
 }
 
 /**
  * @brief Pop the current stack frame
  */
-void runtime_pop_stack(void) {
-    if (config_get_gctype() == GCType_MarkSweep ||
-        config_get_gctype() == GCType_Copying) {
-        marksweep_pop_stack();
-    }
-}
-
-/**
- * @brief Force a garbage collection cycle
- */
-void runtime_do_gc_cycle(void) {
-    GCType t = config_get_gctype();
-
-    switch (t) {
-    case GCType_None:
-    case GCType_Refcount:
-        MJC_LOG("Cannot force GC cycle on None/Refcount\n");
-        break;
-    case GCType_MarkSweep: marksweep_collect(); break;
-    case GCType_Copying:   copying_collect(); break;
-    default:               MJC_LOG("Unimplemented GC cycle: type=%d\n", t); break;
-    }
+void runtime_stack_pop(void) {
+    MJC_ASSERT(__runtime_valid_gc());
+    gc_stack_pop(curr_gc);
 }
 
 /**
@@ -175,4 +232,18 @@ void runtime_print_integer(s32 value) {
  */
 void runtime_print_boolean(s32 value) {
     printf("%s\n", value ? "True" : "False");
+}
+
+/**
+ * @brief Check whether the current heap is valid
+ */
+static BOOL __runtime_valid_heap(void) {
+    return curr_heap != NULL;
+}
+
+/**
+ * @brief Check whether the current GC is valid
+ */
+static BOOL __runtime_valid_gc(void) {
+    return curr_gc != NULL || config_get_gc_type() == GcType_None;
 }

@@ -33,8 +33,8 @@ JAVA_CLS_FILES := $(JAVA_SRC_DIRS:=/*.class) parse/javacc/*.class
 
 # Runtime (C) source
 C_RUNTIME_DIR := runtime
-C_RUNTIME_SRC := $(wildcard $(C_RUNTIME_DIR)/*.c)
-C_RUNTIME_H := $(wildcard $(C_RUNTIME_DIR)/*.h)
+C_RUNTIME_SRC := $(wildcard $(C_RUNTIME_DIR)/*.c) $(wildcard $(C_RUNTIME_DIR)/*/*.c)
+C_RUNTIME_H := $(wildcard $(C_RUNTIME_DIR)/*.h) $(wildcard $(C_RUNTIME_DIR)/*/*.h)
 C_RUNTIME_FILES := $(C_RUNTIME_SRC) $(C_RUNTIME_H)
 C_RUNTIME_O := $(C_RUNTIME_SRC:.c=.o)
 # Runtime compiler flags

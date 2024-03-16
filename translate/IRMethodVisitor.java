@@ -73,7 +73,7 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
         frag = TranslateUtil.joinFragments(
                 frag,
                 new EVAL(new CALL(
-                        new NAME("runtime_push_stack"),
+                        new NAME("runtime_stack_push"),
                         Arch.get().getStackAccess(),
                         new CONST(Arch.get().getStackFrameSize(n.locals.size())))));
 
@@ -88,7 +88,7 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
             frag = TranslateUtil.joinFragments(
                     frag,
                     new EVAL(new CALL(
-                            new NAME("runtime_ref_inc"),
+                            new NAME("runtime_ref_incr"),
                             f.i.accept(new IRExpressionVisitor()))));
         }
 
@@ -113,7 +113,7 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
             frag = TranslateUtil.joinFragments(
                     frag,
                     new EVAL(new CALL(
-                            new NAME("runtime_ref_dec"),
+                            new NAME("runtime_ref_decr"),
                             l.i.accept(new IRExpressionVisitor()))));
         }
 
@@ -128,14 +128,14 @@ public final class IRMethodVisitor implements SyntaxTreeVisitor<Stm> {
             frag = TranslateUtil.joinFragments(
                     frag,
                     new EVAL(new CALL(
-                            new NAME("runtime_ref_dec"),
+                            new NAME("runtime_ref_decr"),
                             f.i.accept(new IRExpressionVisitor()))));
         }
 
         // Pop stack frame for the GC
         frag = TranslateUtil.joinFragments(
                 frag,
-                new EVAL(new CALL(new NAME("runtime_pop_stack"))));
+                new EVAL(new CALL(new NAME("runtime_stack_pop"))));
 
         // Exit method scope
         check.Phase.getSymbolTable().exitScope();

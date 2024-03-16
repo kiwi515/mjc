@@ -1,4 +1,5 @@
 /*
+ * Author:  Trevor Schiff, tschiff2020@my.fit.edu
  * Author:  Tyler Gutowski, tgutowski2020@my.fit.edu
  * Course:  CSE 4101, Fall 2023
  * Project: Heap Heap Hooray
@@ -7,22 +8,17 @@
 
 #ifndef MINI_JAVA_COMPILER_CONFIG_H
 #define MINI_JAVA_COMPILER_CONFIG_H
+#include "gc/gc.h"
+#include "heap/heap.h"
 #include "types.h"
 
-/**
- * @brief Garbage collection method
- */
-typedef enum {
-    GCType_None,
-    GCType_Refcount,
-    GCType_MarkSweep,
-    GCType_Copying,
-    GCType_Generational,
+GcType config_get_gc_type(void);
+void config_set_gc_type(GcType type);
 
-    GCType_Max
-} GCType;
+HeapType config_get_heap_type(void);
+void config_set_heap_type(HeapType type);
 
-GCType config_get_gctype(void);
-void config_set_gctype(GCType type);
+u32 config_get_heap_size(void);
+void config_set_heap_size(u32 size);
 
 #endif

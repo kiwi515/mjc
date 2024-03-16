@@ -29,7 +29,7 @@ public final class IRExpressionVisitor implements SyntaxTreeVisitor<Exp> {
      * Map MiniJava "System" class methods -> C runtime functions
      */
     private static final HashMap<String, String> s_intrinsics = new HashMap<String, String>(
-            Map.of("gc", "runtime_do_gc_cycle"));
+            Map.of("gc", "runtime_collect"));
 
     /**
      * Visit program

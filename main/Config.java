@@ -24,12 +24,21 @@ public final class Config {
     /**
      * Garbage collection method
      */
-    public enum GCType {
+    public enum GcType {
         None,
-        Refcount,
+        RefCount,
         MarkSweep,
         Copying,
         Generational,
+    }
+
+    /**
+     * Heap type
+     */
+    public enum HeapType {
+        Stl,
+        Chunk,
+        Buddy,
     }
 
     /**
@@ -48,7 +57,10 @@ public final class Config {
     private static ArchType s_arch = ArchType.Sparc;
 
     // Target GC method (OFF by default)
-    private static GCType s_gcType = GCType.None;
+    private static GcType s_gcType = GcType.None;
+
+    // Target heap type (STL by default)
+    private static HeapType s_heapType = HeapType.Stl;
 
     // Target optimization level (O0/no opt by default)
     private static OptLevel s_optLevel = OptLevel.O0;
@@ -88,11 +100,11 @@ public final class Config {
                         break;
 
                     case "--gc":
-                        s_gcType = str2enum(GCType.class, tokens[1]);
+                        s_gcType = str2enum(GcType.class, tokens[1]);
                         break;
 
-                    case "--opt":
-                        s_optLevel = str2enum(OptLevel.class, tokens[1]);
+                    case "--heap":
+                        s_heapType = str2enum(HeapType.class, tokens[1]);
                         break;
 
                     // Assume this is specifying the source file
@@ -126,14 +138,14 @@ public final class Config {
                         "Log verbose compiler information to \"/verbose.txt\"."),
 
                 String.format("%-20s%s", "--gc=<type>",
-                        "Set <type> as the garbage collection method in the main function."),
+                        "Set <type> as the program's garbage collection method."),
                 String.format("%-20s%s", "",
-                        enum2options(GCType.class)),
+                        enum2options(GcType.class)),
 
-                String.format("%-20s%s", "--opt=<level>",
-                        "Set <level> as the program optimization level."),
+                String.format("%-20s%s", "--heap=<type>",
+                        "Set <type> as the program's heap type."),
                 String.format("%-20s%s", "",
-                        enum2options(OptLevel.class)));
+                        enum2options(HeapType.class)));
 
         System.out.println(str);
     }
@@ -155,8 +167,15 @@ public final class Config {
     /**
      * Get runtime GC method
      */
-    public static GCType getGcType() {
+    public static GcType getGcType() {
         return s_gcType;
+    }
+
+    /**
+     * Get runtime heap type 
+     */
+    public static HeapType getHeapType() {
+        return s_heapType;
     }
 
     /**

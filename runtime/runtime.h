@@ -8,38 +8,41 @@
 
 #ifndef MINI_JAVA_COMPILER_RUNTIME_H
 #define MINI_JAVA_COMPILER_RUNTIME_H
-#include "config.h"
+#include "gc/gc.h"
+#include "heap/heap.h"
 #include "types.h"
 
-/*=======================================================*/
-/*                  Allocator functions                  */
-/*=======================================================*/
+// Current heap
+extern Heap* curr_heap;
+// Current garbage collector
+extern GC* curr_gc;
+
+// State
+void runtime_enter(void);
+void runtime_collect(void);
+void runtime_exit(void);
+
+// Memory
 void* runtime_alloc_object(u32 size);
 void* runtime_alloc_array(u32 size, u32 n);
-void runtime_cleanup(void);
 
-/*=======================================================*/
-/*                  Debugging functions                  */
-/*=======================================================*/
-void runtime_debug_dumpheap(void);
+// Debug
+void runtime_dump_heap(void);
 
-/*=======================================================*/
-/*               Configuration functions                 */
-/*=======================================================*/
-void runtime_set_gctype(GCType type);
+// Config
+void runtime_set_gc_type(GcType type);
+void runtime_set_heap_type(HeapType type);
+void runtime_set_heap_size(u32 size);
 
-/*=======================================================*/
-/*              Garbage collector functions              */
-/*=======================================================*/
-void runtime_ref_inc(void* block);
-void runtime_ref_dec(void* block);
-void runtime_push_stack(void* frame, u32 size);
-void runtime_pop_stack(void);
-void runtime_do_gc_cycle(void);
+// Refcount
+void runtime_ref_incr(void* block);
+void runtime_ref_decr(void* block);
 
-/*=======================================================*/
-/*                    Print functions                    */
-/*=======================================================*/
+// Stack frame
+void runtime_stack_push(const void* frame, u32 size);
+void runtime_stack_pop(void);
+
+// Print
 void runtime_print_integer(s32 value);
 void runtime_print_boolean(s32 value);
 
