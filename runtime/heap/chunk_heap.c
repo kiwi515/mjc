@@ -7,6 +7,7 @@
  */
 
 #include "heap/chunk_heap.h"
+#include <string.h>
 
 typedef struct ChunkBlock {
     // Memory owned by this block
@@ -125,7 +126,7 @@ Object* chunkheap_alloc(Heap* heap, u32 size) {
 
     // If the block is exactly the right size, we can just take it.
     if (bestBlock->size == size) {
-        return bestBlock->begin;
+        return (Object*)bestBlock->begin;
     }
 
     // The block is bigger than what we need, so we need to break off a piece.
@@ -280,7 +281,7 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         }
 
         // Object will begin at the block data
-        const Object* obj = (const Object*)ELEM->begin;
+        Object* obj = (Object*)ELEM->begin;
 
         // If alloced was set, this really should be a real Object
         MJC_ASSERT_MSG(heap_is_object(src, ELEM->begin),
@@ -302,7 +303,7 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         memcpy(block, contentBegin, contentSize);
 
         // Free the old block (making the operation a move, not a copy)
-        heap_free(src, contentBegin);
+        heap_free(src, obj);
     )
     // clang-format on
 }

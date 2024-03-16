@@ -217,7 +217,7 @@ static void __marksweep_sweep(GC* gc) {
         // Free unmarked objects, but don't touch any RC
         if (!ELEM->marked) {
             MJC_LOG("sweep %p\n", ELEM);
-            heap_free(curr_heap, ELEM->data);
+            heap_free(curr_heap, ELEM);
         } else {
             // Unmark for next gc cycle
             ELEM->marked = FALSE;
@@ -254,7 +254,7 @@ static void __marksweep_search_word(GC* gc, u32 word) {
 
         // Also, recurse to continue through the object graph
         MJC_LOG("search alloced block %p\n", maybe_obj->data);
-        search_block(maybe_obj->data, maybe_obj->size);
+        __marksweep_search_block(gc, maybe_obj->data, maybe_obj->size);
     }
 }
 
@@ -270,11 +270,11 @@ static void __marksweep_search_block(GC* gc, const void* block, u32 size) {
     MJC_ASSERT(self != NULL);
 
     MJC_ASSERT(block != NULL);
-    MJC_ASSERT(size % sizeof(u32) == 0);
+    MJC_ASSERT_MSG(size % sizeof(u32) == 0, "Block unaligned");
 
     // Search the block for references
     for (int i = 0; i < size / sizeof(u32); i++) {
         // Intepret the current word of the block as a possible pointer.
-        search_word(((u32*)block)[i]);
+        __marksweep_search_word(gc, ((u32*)block)[i]);
     }
 }

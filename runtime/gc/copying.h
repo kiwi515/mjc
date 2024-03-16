@@ -12,15 +12,15 @@
 #include "types.h"
 
 // Forward declarations
-typedef struct MarkSweepGC;
+typedef struct Heap;
 
 typedef struct CopyingGC {
     // Common GC structure
     GC base;
     // Built on mark-sweep GC
-    struct GC* mark_sweep;
+    GC* mark_sweep;
     // "To" heap
-    Heap* to_heap;
+    struct Heap* to_heap;
 } CopyingGC;
 
 GC* copying_create(void);

@@ -65,8 +65,8 @@ void gc_collect(GC* gc);
 void gc_stack_push(GC* gc, const void* frame, u32 size);
 void gc_stack_pop(GC* gc);
 
-void gc_ref_incr(GC* gc, Object* obj);
-void gc_ref_decr(GC* gc, Object* obj);
+void gc_ref_incr(GC* gc, struct Object* obj);
+void gc_ref_decr(GC* gc, struct Object* obj);
 
 void gc_destroy(GC* gc);
 

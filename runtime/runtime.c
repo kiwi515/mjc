@@ -9,6 +9,7 @@
 #include "runtime.h"
 #include "config.h"
 #include "gc/copying.h"
+#include "gc/gc.h"
 #include "gc/marksweep.h"
 #include "gc/refcount.h"
 #include "heap/chunk_heap.h"
@@ -205,14 +206,6 @@ void runtime_stack_push(const void* frame, u32 size) {
 void runtime_stack_pop(void) {
     MJC_ASSERT(curr_gc != NULL);
     gc_stack_pop(curr_gc);
-}
-
-/**
- * @brief Force a garbage collection cycle
- */
-void runtime_collect(void) {
-    MJC_ASSERT(curr_gc != NULL);
-    gc_collect(curr_gc);
 }
 
 /**

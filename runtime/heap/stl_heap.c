@@ -39,7 +39,7 @@ void stlheap_destroy(Heap* heap) {
 
     // clang-format off
     LINKLIST_FOREACH(&self->objects, Object*,
-        stlheap_free(heap, ELEM, TRUE);
+        stlheap_free(heap, ELEM);
     );
     // clang-format on
 
