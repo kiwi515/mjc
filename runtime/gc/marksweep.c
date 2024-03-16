@@ -212,18 +212,28 @@ static void __marksweep_sweep(GC* gc) {
     MarkSweepGC* self = GC_DYNAMIC_CAST(gc, MarkSweepGC);
     MJC_ASSERT(self != NULL);
 
-    // clang-format off
-    LINKLIST_FOREACH(&curr_heap->objects, Object*,
-        // Free unmarked objects, but don't touch any RC
-        if (!ELEM->marked) {
-            MJC_LOG("sweep %p\n", ELEM);
-            heap_free(curr_heap, ELEM);
+    // Manual list iteration due to deletion while iterating
+    LinkNode* node = curr_heap->objects.head;
+    Object* elem = NULL;
+
+    while (node != NULL) {
+        // Preserve next pointer before potential node deletion
+        LinkNode* next = node->next;
+
+        // Access object in current node
+        elem = (Object*)node->object;
+
+        // Free unmarked objects
+        if (!elem->marked) {
+            MJC_LOG("sweep %p\n", elem);
+            heap_free(curr_heap, elem);
         } else {
             // Unmark for next gc cycle
-            ELEM->marked = FALSE;
+            elem->marked = FALSE;
         }
-    );
-    // clang-format on
+
+        node = next;
+    }
 }
 
 /**

@@ -30,8 +30,8 @@ Object* heap_get_object(void* block) {
 void heap_dump_object(const Object* obj) {
     MJC_ASSERT(obj != NULL);
 
-    MJC_LOG("addr:%p size:%d marked:%d, ref:%d\n", obj, obj->size, obj->marked,
-            obj->ref);
+    MJC_LOG("addr:%p size:%d marked:%s, ref:%d\n", obj, obj->size,
+            obj->marked ? "true" : "false", obj->ref);
 }
 
 /**
