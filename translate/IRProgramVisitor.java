@@ -48,11 +48,30 @@ public final class IRProgramVisitor implements SyntaxTreeVisitor<Void> {
         // Translate main function
         Stm frag = n.body.accept(new IRStatementVisitor());
 
+        /**
+         * Before user program
+         */
+
+        // Set heap type in the runtime
+        frag = TranslateUtil.joinFragments(
+                new EVAL(new CALL(new NAME("config_set_heap_type"),
+                        new CONST(Config.getHeapType().ordinal()))),
+                frag);
+
         // Set GC type in the runtime
         frag = TranslateUtil.joinFragments(
                 new EVAL(new CALL(new NAME("config_set_gc_type"),
                         new CONST(Config.getGcType().ordinal()))),
                 frag);
+
+        // Free memory allocated by the runtime
+        frag = TranslateUtil.joinFragments(
+                new EVAL(new CALL(new NAME("runtime_enter"))),
+                frag);
+
+        /**
+         * After user program
+         */
 
         // Free memory allocated by the runtime
         frag = TranslateUtil.joinFragments(
