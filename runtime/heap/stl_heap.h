@@ -18,9 +18,11 @@
 typedef struct StlHeap {
     // Common heap structure
     Heap base;
+    // Free size remaining
+    u32 size;
 } StlHeap;
 
-Heap* stlheap_create(void);
+Heap* stlheap_create(u32 size);
 void stlheap_destroy(Heap* heap);
 Object* stlheap_alloc(Heap* heap, u32 size);
 void stlheap_free(Heap* heap, Object* obj);

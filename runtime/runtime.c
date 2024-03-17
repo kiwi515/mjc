@@ -10,6 +10,7 @@
 #include "config.h"
 #include "gc/copying_gc.h"
 #include "gc/gc.h"
+#include "gc/generational_gc.h"
 #include "gc/marksweep_gc.h"
 #include "gc/refcount_gc.h"
 #include "heap/chunk_heap.h"
@@ -43,7 +44,7 @@ void runtime_enter(void) {
     // Setup heap
     switch (config_get_heap_type()) {
     case HeapType_StlHeap:
-        curr_heap = stlheap_create();
+        curr_heap = stlheap_create(heap_size);
         break;
     case HeapType_ChunkHeap:
         curr_heap = chunkheap_create(heap_size);
@@ -70,7 +71,7 @@ void runtime_enter(void) {
         curr_gc = copying_create();
         break;
     case GcType_GenerationalGC:
-        MJC_ASSERT_MSG(FALSE, "Not implemented");
+        curr_gc = generational_create();
         break;
     default:
         MJC_ASSERT(FALSE);

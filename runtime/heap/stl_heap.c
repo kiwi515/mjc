@@ -12,12 +12,18 @@
 
 /**
  * @brief Create standard-library (STL) heap
+ *
+ * @param size Heap size
  */
-Heap* stlheap_create(void) {
+Heap* stlheap_create(u32 size) {
+    MJC_ASSERT_MSG(size > 0, "Invalid heap size");
+
     StlHeap* self = MJC_ALLOC_OBJ(StlHeap);
     MJC_ASSERT(self != NULL);
     memset(self, 0, sizeof(StlHeap));
     self->base.type = HeapType_StlHeap;
+
+    self->size = size;
 
     // Register heap functions
     self->base._destroy = stlheap_destroy;
@@ -52,6 +58,11 @@ Object* stlheap_alloc(Heap* heap, u32 size) {
     StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
     MJC_ASSERT(self != NULL);
 
+    // Emulate heap size so we can force restrictions
+    if (size > self->size) {
+        return NULL;
+    }
+
     // STL provides malloc/free
     Object* obj = (Object*)MJC_ALLOC(size);
     if (obj == NULL) {
@@ -59,6 +70,8 @@ Object* stlheap_alloc(Heap* heap, u32 size) {
     }
 
     memset(obj, 0, size);
+    self->size -= size;
+
     return obj;
 }
 
@@ -74,6 +87,7 @@ void stlheap_free(Heap* heap, Object* obj) {
 
     // STL provides malloc/free
     MJC_FREE(obj);
+    self->size += obj->size + sizeof(Object);
 }
 
 /**
@@ -86,6 +100,7 @@ void stlheap_dump(const Heap* heap) {
     MJC_ASSERT(self != NULL);
 
     MJC_LOG("STL heap: %p:\n", self);
+    MJC_LOG("self->size = %08X\n", self->size);
     MJC_LOG("self->objects = {\n");
 
     // clang-format off
