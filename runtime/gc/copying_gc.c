@@ -16,8 +16,8 @@
 #include <string.h>
 
 // Forward declarations
-static void __copying_mark_obj(Object* obj, u32* pp_obj);
-static void __copying_fix_obj(Object* obj, u32* pp_obj);
+static void __copying_mark_obj(void* arg, Object* obj, u32* pp_obj);
+static void __copying_fix_obj(void* arg, Object* obj, u32* pp_obj);
 static void __copying_swap_heaps(GC* gc);
 
 /**
@@ -72,7 +72,7 @@ void copying_collect(GC* gc) {
     MJC_ASSERT(self->to_heap != NULL);
 
     // Mark live allocations
-    stackframe_traverse(__copying_mark_obj);
+    stackframe_traverse(__copying_mark_obj, NULL);
 
     // Clear the "to" heap (re-create it)
     heap_destroy(self->to_heap);
@@ -83,14 +83,17 @@ void copying_collect(GC* gc) {
     // Copy over live allocations
     chunkheap_purify(curr_heap, self->to_heap);
 
+    // Fix object pointers that were changed.
+    //
+    // NOTE: This happens after the copy, but before the delete.
+    //       We cross-reference the "from" copy with the "to" copy.
+    stackframe_traverse(__copying_fix_obj, gc);
+
     // Everything left in the "from" heap is garbage
     heap_destroy(curr_heap);
     u32 from_size = config_get_heap_size();
     curr_heap = chunkheap_create(from_size);
     MJC_ASSERT(curr_heap != NULL);
-
-    // Fix object pointers that were changed
-    stackframe_traverse(__copying_fix_obj);
 
     // Swap handles of "from" and "to" heaps
     __copying_swap_heaps(gc);
@@ -126,10 +129,11 @@ void copying_stack_pop(GC* gc) {
 /**
  * @brief Mark object as reachable (stack traversal function)
  *
+ * @param arg User argument (optional)
  * @param obj Heap object that was found
  * @param pp_obj Address of the pointer to the object
  */
-static void __copying_mark_obj(Object* obj, u32* pp_obj) {
+static void __copying_mark_obj(void* arg, Object* obj, u32* pp_obj) {
     MJC_ASSERT(obj != NULL);
     MJC_ASSERT(pp_obj != NULL);
 
@@ -140,14 +144,40 @@ static void __copying_mark_obj(Object* obj, u32* pp_obj) {
 /**
  * @brief Repair object pointers after copying (stack traversal function)
  *
+ * @param arg User argument (optional)
  * @param obj Heap object that was found
  * @param pp_obj Address of the pointer to the object
  */
-static void __copying_fix_obj(Object* obj, u32* pp_obj) {
+static void __copying_fix_obj(void* arg, Object* obj, u32* pp_obj) {
     MJC_ASSERT(obj != NULL);
     MJC_ASSERT(pp_obj != NULL);
 
-    MJC_LOG("copying fix %p\n", obj);
+    CopyingGC* self = GC_DYNAMIC_CAST((GC*)arg, CopyingGC);
+    MJC_ASSERT(self != NULL);
+
+    ChunkHeap* from = HEAP_DYNAMIC_CAST(curr_heap, ChunkHeap);
+    MJC_ASSERT(from != NULL);
+
+    // Nothing that was just copied over should be reachable yet
+    MJC_ASSERT(!heap_is_object(self->to_heap, obj));
+    // Therefore, it must be from the current heap
+    MJC_ASSERT(heap_is_object(curr_heap, obj));
+
+    // clang-format off
+    // Convert "from" heap address -> "to" heap address using mappings
+    const ChunkMapping* map = NULL;
+    LINKLIST_FOREACH(&from->mappings, const ChunkMapping*,
+        if (ELEM->from == obj) {
+            map = ELEM;
+            break;
+        }
+    );
+    // clang-format on
+
+    // Overwrite reference
+    MJC_ASSERT(map != NULL);
+    *pp_obj = (u32)map->to;
+    MJC_LOG("fix obj %p -> %p\n", map->from, map->to);
 }
 
 /**

@@ -10,6 +10,7 @@ TEST_FILES=(
   "DoubleDecrementTest.java"
   "CyclicGarbageTest.java"
   "MSBigMemoryTest.java"
+  "UseAfterCopyTest.java"
 )
 
 for file in "${TEST_FILES[@]}"; do

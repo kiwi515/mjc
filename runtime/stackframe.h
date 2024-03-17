@@ -16,13 +16,15 @@ typedef struct Object;
 /**
  * @brief Function to apply to all reachable objects
  *
+ * @param arg User argument (optional)
  * @param obj Heap object that was found
  * @param pp_obj Address of the pointer to the object
  */
-typedef void (*StackFrameTraverseFunc)(struct Object* obj, u32* pp_obj);
+typedef void (*StackFrameTraverseFunc)(void* arg, struct Object* obj,
+                                       u32* pp_obj);
 
 void stackframe_push(void* frame, u32 size);
 void stackframe_pop(void);
-void stackframe_traverse(StackFrameTraverseFunc callback);
+void stackframe_traverse(StackFrameTraverseFunc callback, void* callback_arg);
 
 #endif

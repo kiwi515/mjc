@@ -66,7 +66,8 @@ typedef struct Heap {
  * @note Heap type is only checked when compiling for debug
  */
 #define HEAP_DYNAMIC_CAST(heap, T)                                             \
-    (MJC_ASSERT(heap->type == HeapType_##T), heap != NULL ? (T*)heap : NULL)
+    (MJC_ASSERT((heap)->type == HeapType_##T),                                 \
+     (heap) != NULL ? (T*)(heap) : NULL)
 
 Object* heap_get_object(void* block);
 void heap_dump_object(const Object* obj);

@@ -41,10 +41,11 @@ typedef struct FrameDesc {
 static LinkList frames;
 
 // Forward declarations
-static void __stackframe_traverse_word(u32* p_word,
-                                       StackFrameTraverseFunc func);
+static void __stackframe_traverse_word(u32* p_word, StackFrameTraverseFunc func,
+                                       void* func_arg);
 static void __stackframe_traverse_block(void* block, u32 size,
-                                        StackFrameTraverseFunc func);
+                                        StackFrameTraverseFunc func,
+                                        void* func_arg);
 
 /**
  * @brief Push a new active stack frame
@@ -89,8 +90,9 @@ void stackframe_pop(void) {
  * @brief Traverse the stack and apply a function to all reachable objects
  *
  * @param func Traversal function
+ * @param func_arg Traversal function argument
  */
-void stackframe_traverse(StackFrameTraverseFunc func) {
+void stackframe_traverse(StackFrameTraverseFunc func, void* func_arg) {
     MJC_ASSERT(func != NULL);
 
     // clang-format off
@@ -102,14 +104,14 @@ void stackframe_traverse(StackFrameTraverseFunc func) {
         // Search CPU local registers (compiler temporaries)
         for (int i = 0; i < ARRAY_LENGTH(ELEM->ctx->lreg); i++) {
             MJC_LOG("  ctx->lreg[%d]=%08X\n", i, ELEM->ctx->lreg[i]);
-            __stackframe_traverse_word(&ELEM->ctx->lreg[i], func);
+            __stackframe_traverse_word(&ELEM->ctx->lreg[i], func, func_arg);
         }
 
         // Search CPU input/output registers
         // Ignore %i6/%i7 (SP/FP, RA)
         for (int i = 0; i < 6; i++) {
             MJC_LOG("  ctx->ioreg[%d]=%08X\n", i, ELEM->ctx->lreg[i]);
-            __stackframe_traverse_word(&ELEM->ctx->ioreg[i], func);
+            __stackframe_traverse_word(&ELEM->ctx->ioreg[i], func, func_arg);
         }
 
         // # of locals = frame space occupied by locals / size of a local.
@@ -148,7 +150,8 @@ void stackframe_traverse(StackFrameTraverseFunc func) {
             MJC_LOG("  ctx->locals[%d (align:%d)] = %08X\n", i, local_idx,
                     ELEM->ctx->locals[local_idx]);
 
-            __stackframe_traverse_word(&ELEM->ctx->locals[local_idx], func);
+            __stackframe_traverse_word(&ELEM->ctx->locals[local_idx], func,
+                                        func_arg);
         }
     );
     // clang-format on
@@ -158,9 +161,11 @@ void stackframe_traverse(StackFrameTraverseFunc func) {
  * @brief Check if a word of data is an object reference
  *
  * @param p_word Pointer to word of data (any 32-bit value)
+ * @param func Traversal function
+ * @param func_arg Traversal function argument
  */
-static void __stackframe_traverse_word(u32* p_word,
-                                       StackFrameTraverseFunc func) {
+static void __stackframe_traverse_word(u32* p_word, StackFrameTraverseFunc func,
+                                       void* func_arg) {
     MJC_ASSERT(p_word != NULL);
     MJC_ASSERT(func != NULL);
 
@@ -179,11 +184,12 @@ static void __stackframe_traverse_word(u32* p_word,
     if (heap_is_object(curr_heap, maybe_obj)) {
         // Apply user function
         MJC_LOG("traverse p_obj=%p pp_obj=%p\n", maybe_obj, p_word);
-        func(maybe_obj, p_word);
+        func(func_arg, maybe_obj, p_word);
 
         // Look for child references in this object
         MJC_LOG("traverse alloced block %p\n", maybe_obj->data);
-        __stackframe_traverse_block(maybe_obj->data, maybe_obj->size, func);
+        __stackframe_traverse_block(maybe_obj->data, maybe_obj->size, func,
+                                    func_arg);
     }
 }
 
@@ -192,15 +198,18 @@ static void __stackframe_traverse_word(u32* p_word,
  *
  * @param block Memory block pointer
  * @param size Memory block size
+ * @param func Traversal function
+ * @param func_arg Traversal function argument
  */
 static void __stackframe_traverse_block(void* block, u32 size,
-                                        StackFrameTraverseFunc func) {
+                                        StackFrameTraverseFunc func,
+                                        void* func_arg) {
     MJC_ASSERT(block != NULL);
     MJC_ASSERT_MSG(size % sizeof(u32) == 0, "Block unaligned");
     MJC_ASSERT(func != NULL);
 
     // Check each word of the memory block
     for (int i = 0; i < size / sizeof(u32); i++) {
-        __stackframe_traverse_word((u32*)block + i, func);
+        __stackframe_traverse_word((u32*)block + i, func, func_arg);
     }
 }

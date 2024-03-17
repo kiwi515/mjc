@@ -13,6 +13,14 @@
 #include "types.h"
 
 /**
+ * @brief Mapping for fixing pointers
+ */
+typedef struct ChunkMapping {
+    void* from;
+    void* to;
+} ChunkMapping;
+
+/**
  * @brief Memory chunk (previously "slab") backed heap
  */
 typedef struct ChunkHeap {
@@ -23,6 +31,8 @@ typedef struct ChunkHeap {
     u32 size;
     // Chunk is partitioned into blocks
     LinkList blocks;
+    // Mappings for copies during purify
+    LinkList mappings;
 } ChunkHeap;
 
 Heap* chunkheap_create(u32 size);

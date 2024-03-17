@@ -69,17 +69,21 @@ void chunkheap_destroy(Heap* heap) {
     ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
 
-    // Release block structures
+    // Release structures
     // clang-format off
     LINKLIST_FOREACH(&self->blocks, ChunkBlock*,
+        MJC_FREE(ELEM);
+    );
+    LINKLIST_FOREACH(&self->mappings, ChunkMapping*,
         MJC_FREE(ELEM);
     );
     // clang-format on
 
     // Release list memory
     linklist_destroy(&self->blocks);
+    linklist_destroy(&self->mappings);
 
-    // Release memory chunk
+    // Release chunk
     MJC_ASSERT(self->begin != NULL);
     MJC_FREE(self->begin);
 
@@ -239,7 +243,7 @@ void chunkheap_dump(const Heap* heap) {
 }
 
 /**
- * @brief Move live allocations of one chunk heap to another
+ * @brief Copy live allocations of one chunk heap to another
  * @note DON'T FORGET TO FIRST USE __marksweep_mark!!!
  *
  * @param src Source heap (move from)
@@ -280,15 +284,17 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         u32 contentSize = ELEM->size - sizeof(Object);
 
         // Create a new header for the content and copy over the Object
-        heap_dump(dst);
         void* block = heap_alloc(dst, contentSize);
-        heap_dump(dst);
-
         MJC_ASSERT(block != NULL);
         memcpy(block, contentBegin, contentSize);
 
-        // Free the old block (making the operation a move, not a copy)
-        heap_free(src, obj);
+        // Create mapping for pointer redirection
+        ChunkMapping* map = MJC_ALLOC_OBJ(ChunkMapping);
+        MJC_ASSERT(map != NULL);
+        memset(map, 0, sizeof(ChunkMapping));
+        map->from = obj;
+        map->to = block;
+        linklist_append(&csrc->mappings, map);
     )
     // clang-format on
 }

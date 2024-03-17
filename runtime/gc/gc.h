@@ -58,7 +58,7 @@ typedef struct GC {
  * @note GC type is only checked when compiling for debug
  */
 #define GC_DYNAMIC_CAST(gc, T)                                                 \
-    (MJC_ASSERT(gc->type == GcType_##T), gc != NULL ? (T*)gc : NULL)
+    (MJC_ASSERT((gc)->type == GcType_##T), (gc) != NULL ? (T*)(gc) : NULL)
 
 void gc_collect(GC* gc);
 
