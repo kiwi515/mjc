@@ -12,52 +12,30 @@ class Main {
     }
 }
 
-class Node {
-    Node next;
-    int dummy;
+class MyClass {
+    int value;
 
-    public int setNext(Node n) {
-        next = n;
+    public int setValue(int x) {
+        value = x;
         return 0;
     }
 
-    public int setDummy(int x) {
-        dummy = x;
-        return 0;
-    }
-
-    public int getDummy() {
-        return dummy;
+    public int getValue() {
+        return value;
     }
 }
 
 class UseAfterCopyTest {
-    public int leak() {
-        Node one;
-        Node two;
-        one = new Node();
-        two = new Node();
-
-        one.setNext(two);
-        two.setNext(one);
-        return 0;
-    }
-
     public int execute() {
-        Node markme;
+        MyClass dummy;
 
         // Dummy root variable. Should be marked by the GC.
-        markme = new Node();
-        markme.setDummy(12345);
+        dummy = new MyClass();
+        dummy.setValue(12345);
 
-        // Leak memory via cyclic reference.
-        this.leak();
-
-        // Attempt to reclaim memory.
+        // Force garbage collection cycle.
         System.gc();
 
-        // Use 'markme' after it has been copied to the new heap.
-        // If pointer correction is OK, this will return 12345.
-        return markme.getDummy();
+        return dummy.getValue();
     }
 }
