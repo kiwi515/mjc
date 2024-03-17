@@ -11,16 +11,13 @@
 #include "linklist.h"
 #include "types.h"
 
-#define HEAP_MAX_AGE 4 // See Object::age
-
 /**
  * @brief Garbage-collectible object header
  */
 typedef struct Object {
     /* 0x0 */ u32 size;              // Size of this object
     /* 0x4 */ s32 marked : 1;        // Mark bit (mark-sweep GC)
-    /* 0x4 */ s32 age : 2;           // Age bits (generational GC)
-    /* 0x4 */ volatile s32 ref : 29; // Reference count (reference count GC)
+    /* 0x4 */ volatile s32 ref : 30; // Reference count (reference count GC)
     /* 0x8 */ u8 data[];             // Object data
 } Object;
 

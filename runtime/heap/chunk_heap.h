@@ -28,7 +28,7 @@ typedef struct ChunkHeap {
     u8* begin;         // Chunk start
     u32 size;          // Chunk size
     LinkList blocks;   // Block partitions
-    LinkList mappings; // Mappings for purify
+    LinkList mappings; // Mappings from purify/copies
 } ChunkHeap;
 
 Heap* chunkheap_create(u32 size);
@@ -37,6 +37,6 @@ Object* chunkheap_alloc(Heap* heap, u32 size);
 void chunkheap_free(Heap* heap, Object* block);
 void chunkheap_dump(const Heap* heap);
 
-void chunkheap_purify(Heap* src, Heap* dst);
+BOOL chunkheap_purify(Heap* src, Heap* dst);
 
 #endif

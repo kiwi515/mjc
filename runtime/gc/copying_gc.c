@@ -16,8 +16,7 @@
 #include <string.h>
 
 // Forward declarations
-static void __copying_mark_obj(void* arg, Object* obj, u32* pp_obj);
-static void __copying_fix_obj(void* arg, Object* obj, u32* pp_obj);
+static void __copying_mark_obj(void* arg, Object* obj, void** pp_obj);
 static void __copying_swap_heaps(GC* gc);
 
 /**
@@ -81,13 +80,8 @@ void copying_collect(GC* gc) {
     MJC_ASSERT(self->to_heap != NULL);
 
     // Copy over live allocations
-    chunkheap_purify(curr_heap, self->to_heap);
-
-    // Fix object pointers that were changed.
-    //
-    // NOTE: This happens after the copy, but before the delete.
-    //       We cross-reference the "from" copy with the "to" copy.
-    stackframe_traverse(__copying_fix_obj, gc);
+    BOOL success = chunkheap_purify(curr_heap, self->to_heap);
+    MJC_ASSERT(success);
 
     // Everything left in the "from" heap is garbage
     heap_destroy(curr_heap);
@@ -133,51 +127,12 @@ void copying_stack_pop(GC* gc) {
  * @param obj Heap object that was found
  * @param pp_obj Address of the pointer to the object
  */
-static void __copying_mark_obj(void* arg, Object* obj, u32* pp_obj) {
+static void __copying_mark_obj(void* arg, Object* obj, void** pp_obj) {
     MJC_ASSERT(obj != NULL);
     MJC_ASSERT(pp_obj != NULL);
 
     obj->marked = TRUE;
     MJC_LOG("copying mark %p\n", obj);
-}
-
-/**
- * @brief Repair object pointers after copying (stack traversal function)
- *
- * @param arg User argument (optional)
- * @param obj Heap object that was found
- * @param pp_obj Address of the pointer to the object
- */
-static void __copying_fix_obj(void* arg, Object* obj, u32* pp_obj) {
-    MJC_ASSERT(obj != NULL);
-    MJC_ASSERT(pp_obj != NULL);
-
-    CopyingGC* self = GC_DYNAMIC_CAST((GC*)arg, CopyingGC);
-    MJC_ASSERT(self != NULL);
-
-    ChunkHeap* from = HEAP_DYNAMIC_CAST(curr_heap, ChunkHeap);
-    MJC_ASSERT(from != NULL);
-
-    // Nothing that was just copied over should be reachable yet
-    MJC_ASSERT(!heap_is_object(self->to_heap, obj));
-    // Therefore, it must be from the current heap
-    MJC_ASSERT(heap_is_object(curr_heap, obj));
-
-    // clang-format off
-    // Convert "from" heap address -> "to" heap address using mappings
-    const ChunkMapping* map = NULL;
-    LINKLIST_FOREACH(&from->mappings, const ChunkMapping*,
-        if (ELEM->from == obj) {
-            map = ELEM;
-            break;
-        }
-    );
-    // clang-format on
-
-    // Overwrite reference
-    MJC_ASSERT(map != NULL);
-    *pp_obj = (u32)map->to;
-    MJC_LOG("fix obj %p -> %p\n", map->from, map->to);
 }
 
 /**

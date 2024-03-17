@@ -8,6 +8,7 @@
 
 #include "heap/heap.h"
 #include "config.h"
+#include "gc/generational_gc.h"
 #include "runtime.h"
 #include <stdlib.h>
 #include <string.h>
@@ -64,8 +65,7 @@ void* heap_alloc(Heap* heap, u32 size) {
     // If this does not free enough memory, we proceed onto the next generation.
     //
     // Other GCs will free everything in one go, and halt if that doesn't work.
-    int retry_num =
-        config_get_gc_type() == GcType_GenerationalGC ? HEAP_MAX_AGE : 1;
+    int retry_num = config_get_gc_type() == GcType_GenerationalGC ? 2 : 1;
 
     // Keep trying to allocate memory
     while (obj == NULL && retry_num-- > 0) {

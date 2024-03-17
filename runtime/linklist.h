@@ -29,6 +29,7 @@ void linklist_destroy(LinkList* list);
 
 void linklist_append(LinkList* list, void* object);
 BOOL linklist_remove(LinkList* list, void* object);
+void linklist_remove_iter(LinkList* list, LinkNode* at);
 LinkNode* linklist_pop(LinkList* list);
 void linklist_insert(LinkList* list, LinkNode* at, void* object);
 

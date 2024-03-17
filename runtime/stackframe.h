@@ -21,7 +21,7 @@ typedef struct Object;
  * @param pp_obj Address of the pointer to the object
  */
 typedef void (*StackFrameTraverseFunc)(void* arg, struct Object* obj,
-                                       u32* pp_obj);
+                                       void** pp_obj);
 
 void stackframe_push(void* frame, u32 size);
 void stackframe_pop(void);

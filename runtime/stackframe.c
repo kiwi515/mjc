@@ -34,7 +34,8 @@ typedef struct FrameDesc {
 static LinkList frames;
 
 // Forward declarations
-static void __stackframe_traverse_word(u32* p_word, StackFrameTraverseFunc func,
+static void __stackframe_traverse_word(void** p_word,
+                                       StackFrameTraverseFunc func,
                                        void* func_arg);
 static void __stackframe_traverse_block(void* block, u32 size,
                                         StackFrameTraverseFunc func,
@@ -97,14 +98,14 @@ void stackframe_traverse(StackFrameTraverseFunc func, void* func_arg) {
         // Search CPU local registers (compiler temporaries)
         for (int i = 0; i < ARRAY_LENGTH(ELEM->ctx->lreg); i++) {
             MJC_LOG("  ctx->lreg[%d]=%08X\n", i, ELEM->ctx->lreg[i]);
-            __stackframe_traverse_word(&ELEM->ctx->lreg[i], func, func_arg);
+            __stackframe_traverse_word((void**)&ELEM->ctx->lreg[i], func, func_arg);
         }
 
         // Search CPU input/output registers
         // Ignore %i6/%i7 (SP/FP, RA)
         for (int i = 0; i < 6; i++) {
             MJC_LOG("  ctx->ioreg[%d]=%08X\n", i, ELEM->ctx->lreg[i]);
-            __stackframe_traverse_word(&ELEM->ctx->ioreg[i], func, func_arg);
+            __stackframe_traverse_word((void**)&ELEM->ctx->ioreg[i], func, func_arg);
         }
 
         // # of locals = frame space occupied by locals / size of a local.
@@ -143,7 +144,7 @@ void stackframe_traverse(StackFrameTraverseFunc func, void* func_arg) {
             MJC_LOG("  ctx->locals[%d (align:%d)] = %08X\n", i, local_idx,
                     ELEM->ctx->locals[local_idx]);
 
-            __stackframe_traverse_word(&ELEM->ctx->locals[local_idx], func,
+            __stackframe_traverse_word((void**)&ELEM->ctx->locals[local_idx], func,
                                         func_arg);
         }
     );
@@ -157,21 +158,22 @@ void stackframe_traverse(StackFrameTraverseFunc func, void* func_arg) {
  * @param func Traversal function
  * @param func_arg Traversal function argument
  */
-static void __stackframe_traverse_word(u32* p_word, StackFrameTraverseFunc func,
+static void __stackframe_traverse_word(void** p_word,
+                                       StackFrameTraverseFunc func,
                                        void* func_arg) {
     MJC_ASSERT(p_word != NULL);
     MJC_ASSERT(func != NULL);
 
     // The actual word in question
-    u32 word = *p_word;
+    void* word = *p_word;
 
     // Don't bother with null values.
-    if (word == 0) {
+    if (word == NULL) {
         return;
     }
 
     // Backtrack from object contents to object header
-    Object* maybe_obj = heap_get_object((void*)word);
+    Object* maybe_obj = heap_get_object(word);
 
     // If this "object" exists in the heap, we found a real reference
     if (heap_is_object(curr_heap, maybe_obj)) {
@@ -203,6 +205,6 @@ static void __stackframe_traverse_block(void* block, u32 size,
 
     // Check each word of the memory block
     for (int i = 0; i < size / sizeof(u32); i++) {
-        __stackframe_traverse_word((u32*)block + i, func, func_arg);
+        __stackframe_traverse_word((void**)((u32*)block + i), func, func_arg);
     }
 }

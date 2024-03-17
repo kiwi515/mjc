@@ -7,6 +7,8 @@
  */
 
 #include "heap/chunk_heap.h"
+#include "runtime.h"
+#include "stackframe.h"
 #include <string.h>
 
 typedef struct ChunkBlock {
@@ -14,6 +16,9 @@ typedef struct ChunkBlock {
     u32 size;     // Block size
     BOOL alloced; // Whether this block is in use
 } ChunkBlock;
+
+// Forward declarations
+static void __chunkheap_fix_obj(void* arg, Object* obj, void** pp_obj);
 
 /**
  * @brief Create chunk heap
@@ -97,9 +102,6 @@ void chunkheap_destroy(Heap* heap) {
 Object* chunkheap_alloc(Heap* heap, u32 size) {
     ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
-
-    // Align allocations to 4 bytes
-    size = ROUND_UP(size, 4);
 
     // Find the smallest block that can fit this allocation
     ChunkBlock* best_block = NULL;
@@ -241,12 +243,15 @@ void chunkheap_dump(const Heap* heap) {
 
 /**
  * @brief Copy live allocations of one chunk heap to another
- * @note DON'T FORGET TO FIRST USE __marksweep_mark!!!
+ * @note References are updated to access the copies in the destination heap
  *
- * @param src Source heap (move from)
- * @param dst Destination heap (move to)
+ * @param src Source heap (copy from)
+ * @param dst Destination heap (copy to)
+ *
+ * @return Whether the destination heap had enough room for ALL live allocations
+ * from the source heap
  */
-void chunkheap_purify(Heap* src, Heap* dst) {
+BOOL chunkheap_purify(Heap* src, Heap* dst) {
     MJC_ASSERT(src != NULL);
     MJC_ASSERT(dst != NULL);
 
@@ -255,6 +260,9 @@ void chunkheap_purify(Heap* src, Heap* dst) {
 
     ChunkHeap* cdst = HEAP_DYNAMIC_CAST(dst, ChunkHeap);
     MJC_ASSERT_MSG(cdst != NULL, "Destination heap is not a chunk heap");
+
+    // Clear mappings from last time
+    linklist_destroy(&csrc->mappings);
 
     // clang-format off
     LINKLIST_FOREACH(&csrc->blocks, const ChunkBlock*,
@@ -280,9 +288,11 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         const u8* contentBegin = ELEM->begin + sizeof(Object);
         u32 contentSize = ELEM->size - sizeof(Object);
 
-        // Create a new header for the content and copy over the Object
+        // Create a new header for the content and copy over the object
         void* block = heap_alloc(dst, contentSize);
-        MJC_ASSERT(block != NULL);
+        if (block == NULL) {
+            return FALSE;
+        }
         memcpy(block, contentBegin, contentSize);
 
         // Create mapping for pointer redirection
@@ -294,4 +304,47 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         linklist_append(&csrc->mappings, map);
     )
     // clang-format on
+
+    // Fix object pointers that were changed
+    stackframe_traverse(__chunkheap_fix_obj, src);
+
+    return TRUE;
+}
+
+/**
+ * @brief Repair object pointers after copying (stack traversal function)
+ *
+ * @param arg User argument (optional)
+ * @param obj Heap object that was found
+ * @param pp_obj Address of the pointer to the object
+ */
+static void __chunkheap_fix_obj(void* arg, Object* obj, void** pp_obj) {
+    MJC_ASSERT(obj != NULL);
+    MJC_ASSERT(pp_obj != NULL);
+
+    ChunkHeap* src = HEAP_DYNAMIC_CAST((Heap*)arg, ChunkHeap);
+    MJC_ASSERT(src != NULL);
+
+    // Nothing that was just copied over should be reachable yet.
+    // Therefore, this reference must be from the source heap:
+    MJC_ASSERT(heap_is_object(&src->base, obj));
+
+    // clang-format off
+    const ChunkMapping* map = NULL;
+    // Convert address in source heap -> address in destination heap
+    LINKLIST_FOREACH(&src->mappings, const ChunkMapping*,
+        if (ELEM->from == obj) {
+            map = ELEM;
+            break;
+        }
+    );
+    // clang-format on
+
+    // Overwrite reference
+    if (map != NULL) {
+        *pp_obj = map->to;
+        MJC_LOG("chunkheap fix %p -> %p\n", map->from, map->to);
+    } else {
+        MJC_LOG("chunkheap fix %p -> NONE\n", obj);
+    }
 }

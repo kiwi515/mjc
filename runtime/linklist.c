@@ -129,6 +129,16 @@ BOOL linklist_remove(LinkList* list, void* object) {
 }
 
 /**
+ * @brief Remove node from linked list
+ *
+ * @param list Linked list
+ * @param at Node
+ */
+void linklist_remove_iter(LinkList* list, LinkNode* at) {
+    remove_impl(list, at);
+}
+
+/**
  * @brief Pop tail node from linked list
  *
  * @param list Linked list

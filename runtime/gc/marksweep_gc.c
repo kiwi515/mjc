@@ -14,7 +14,7 @@
 #include <string.h>
 
 // Forward declarations
-static void __marksweep_mark_obj(void* arg, Object* obj, u32* pp_obj);
+static void __marksweep_mark_obj(void* arg, Object* obj, void** pp_obj);
 static void __marksweep_sweep(GC* gc);
 
 /**
@@ -97,7 +97,7 @@ void marksweep_stack_pop(GC* gc) {
  * @param obj Heap object that was found
  * @param pp_obj Address of the pointer to the object
  */
-static void __marksweep_mark_obj(void* arg, Object* obj, u32* pp_obj) {
+static void __marksweep_mark_obj(void* arg, Object* obj, void** pp_obj) {
     MJC_ASSERT(obj != NULL);
     MJC_ASSERT(pp_obj != NULL);
 
