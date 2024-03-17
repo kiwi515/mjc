@@ -28,6 +28,7 @@ Heap* chunkheap_create(u32 size) {
 
     ChunkHeap* self = MJC_ALLOC_OBJ(ChunkHeap);
     MJC_ASSERT(self != NULL);
+    memset(self, 0, sizeof(ChunkHeap));
     self->base.type = HeapType_ChunkHeap;
 
     // Register heap functions
@@ -39,6 +40,7 @@ Heap* chunkheap_create(u32 size) {
     // Underlying memory
     void* begin = MJC_ALLOC(size);
     MJC_ASSERT(begin != NULL);
+    memset(begin, 0, size);
 
     // Important for copying: This tells us the range of the whole thing
     self->begin = (u8*)begin;
@@ -47,6 +49,7 @@ Heap* chunkheap_create(u32 size) {
     // Initially we have one big, continuous block
     ChunkBlock* block = MJC_ALLOC_OBJ(ChunkBlock);
     MJC_ASSERT(block != NULL);
+    memset(block, 0, sizeof(ChunkBlock));
     block->begin = self->begin;
     block->size = self->size;
     block->alloced = FALSE;
@@ -129,28 +132,26 @@ Object* chunkheap_alloc(Heap* heap, u32 size) {
     // Sanity check
     MJC_ASSERT(bestBlock->size >= size);
     MJC_ASSERT(bestBlock->begin != NULL);
+    MJC_ASSERT(!bestBlock->alloced);
 
-    // If the block is exactly the right size, we can just take it.
-    if (bestBlock->size == size) {
-        return (Object*)bestBlock->begin;
+    if (bestBlock->size != size) {
+        // The block is bigger than what we need, so we need to break off a
+        // piece. (This is done by creating a new block with the remaining size)
+        ChunkBlock* otherPart = MJC_ALLOC_OBJ(ChunkBlock);
+        MJC_ASSERT(otherPart != NULL);
+        memset(otherPart, 0, sizeof(ChunkBlock));
+        otherPart->begin = bestBlock->begin + size;
+        otherPart->size = bestBlock->size - size;
+        otherPart->alloced = FALSE;
+
+        // By inserting this new node right after the one we split from, the
+        // list remains sorted!
+        linklist_insert(&self->blocks, bestBlockNode, otherPart);
     }
-
-    // The block is bigger than what we need, so we need to break off a piece.
-    // (This is done by creating a new block with the remaining size)
-    ChunkBlock* otherPart = MJC_ALLOC_OBJ(ChunkBlock);
-    MJC_ASSERT(otherPart != NULL);
-    otherPart->begin = bestBlock->begin + size;
-    otherPart->size = bestBlock->size - size;
-    otherPart->alloced = FALSE;
-
-    // By inserting this new node right after the one we split from, the list
-    // remains sorted!
-    linklist_insert(&self->blocks, bestBlockNode, otherPart);
 
     bestBlock->size = size;
     bestBlock->alloced = TRUE;
 
-    // Strip ChunkBlock "header" for user
     return (Object*)bestBlock->begin;
 }
 
@@ -206,35 +207,35 @@ void chunkheap_dump(const Heap* heap) {
     const ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
 
-    MJC_LOG("Chunk heap: %p\n", self);
+    MJC_LOG("Chunk heap: %p:\n", self);
 
     // Chunk configuration
-    MJC_LOG("    self->begin: %p\n", self->begin);
-    MJC_LOG("    self->size: %08X\n", self->size);
+    MJC_LOG("self->begin: %p\n", self->begin);
+    MJC_LOG("self->size: %08X\n", self->size);
 
     // Chunk blocks
     int i = 0;
-    MJC_LOG("    self->blocks = {\n");
+    MJC_LOG("self->blocks = {\n");
 
     // clang-format off
     LINKLIST_FOREACH(&self->blocks, const ChunkBlock*,
-        MJC_LOG("        {\n");
-        MJC_LOG("            no: %d\n",      i++);
-        MJC_LOG("            begin: %p\n",   ELEM->begin);
-        MJC_LOG("            size: %08X\n",  ELEM->size);
-        MJC_LOG("            alloced: %s\n", ELEM->alloced ? "true" : "false");
+        MJC_LOG("    {\n");
+        MJC_LOG("        no: %d\n",      i++);
+        MJC_LOG("        begin: %p\n",   ELEM->begin);
+        MJC_LOG("        size: %08X\n",  ELEM->size);
+        MJC_LOG("        alloced: %s\n", ELEM->alloced ? "true" : "false");
         
         // Chunks can contain objects
-        if (ELEM->alloced) {
-            MJC_LOG("            object: ");
+        if (ELEM->alloced && ELEM->begin != NULL) {
+            MJC_LOG("        object: ");
             heap_dump_object((const Object*)ELEM->begin);
         }
         
-        MJC_LOG("        },\n");
+        MJC_LOG("    },\n");
     )
     // clang-format on
 
-    MJC_LOG("    }\n");
+    MJC_LOG("}\n");
 }
 
 /**
@@ -264,7 +265,7 @@ void chunkheap_purify(Heap* src, Heap* dst) {
         // Object will begin at the block data
         Object* obj = (Object*)ELEM->begin;
 
-        // If alloced was set, this really should be a real Object
+        // If alloced was set, this must be a real Object
         MJC_ASSERT_MSG(heap_is_object(src, ELEM->begin),
                       "Block is incorrectly marked as alloced");
 
@@ -275,11 +276,14 @@ void chunkheap_purify(Heap* src, Heap* dst) {
 
         // We do a little hack to copy the *contents* while not copying the header.
         MJC_LOG("copying object at %p\n", obj);
-        const u8* contentBegin = ELEM->begin - sizeof(Object);
+        const u8* contentBegin = ELEM->begin + sizeof(Object);
         u32 contentSize = ELEM->size - sizeof(Object);
 
         // Create a new header for the content and copy over the Object
+        heap_dump(dst);
         void* block = heap_alloc(dst, contentSize);
+        heap_dump(dst);
+
         MJC_ASSERT(block != NULL);
         memcpy(block, contentBegin, contentSize);
 

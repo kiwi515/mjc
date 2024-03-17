@@ -8,6 +8,7 @@
 
 #include "heap/stl_heap.h"
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Create standard-library (STL) heap
@@ -15,6 +16,7 @@
 Heap* stlheap_create(void) {
     StlHeap* self = MJC_ALLOC_OBJ(StlHeap);
     MJC_ASSERT(self != NULL);
+    memset(self, 0, sizeof(StlHeap));
     self->base.type = HeapType_StlHeap;
 
     // Register heap functions
@@ -56,6 +58,7 @@ Object* stlheap_alloc(Heap* heap, u32 size) {
         return NULL;
     }
 
+    memset(obj, 0, size);
     return obj;
 }
 

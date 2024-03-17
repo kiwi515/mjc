@@ -9,6 +9,7 @@
 #include "heap/heap.h"
 #include "runtime.h"
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Derive header from a memory block pointer
@@ -50,22 +51,21 @@ void* heap_alloc(Heap* heap, u32 size) {
     u32 full_size = size + sizeof(Object);
 
     // First attempt to allocate
+    MJC_LOG("try alloc (size:%d)\n", full_size);
     Object* obj = heap->_alloc(heap, full_size);
 
-    // Run GC cycle if we need more space
     if (obj == NULL) {
+        // Last attempt to allocate
         MJC_LOG("cant alloc %08X bytes, forcing gc cycle\n", full_size);
         runtime_collect();
-    }
+        obj = heap->_alloc(heap, full_size);
 
-    // Last attempt to allocate
-    obj = heap->_alloc(heap, full_size);
-
-    // Terminate program, we are out of memory
-    if (obj == NULL) {
-        MJC_LOG("cant alloc %08X!!!\n", full_size);
-        exit(EXIT_FAILURE);
-        return NULL;
+        // Terminate program, we are out of memory
+        if (obj == NULL) {
+            MJC_LOG("cant alloc %08X!!!\n", full_size);
+            exit(EXIT_FAILURE);
+            return NULL;
+        }
     }
 
     // Fill out object header
@@ -73,7 +73,11 @@ void* heap_alloc(Heap* heap, u32 size) {
     obj->marked = FALSE;
     obj->ref = 0;
 
-    MJC_LOG("alloc %p (size:%d), userptr: %p\n", obj, size, obj->data);
+    // Clear memory
+    memset(obj->data, 0, size);
+
+    MJC_LOG("alloc success %p (size:%d), userptr: %p\n", obj, full_size,
+            obj->data);
     linklist_append(&heap->objects, obj);
 
     // Header is hidden from the user

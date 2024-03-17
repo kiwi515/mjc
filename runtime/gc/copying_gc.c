@@ -26,6 +26,7 @@ static void __copying_swap_heaps(GC* gc);
 GC* copying_create(void) {
     CopyingGC* self = MJC_ALLOC_OBJ(CopyingGC);
     MJC_ASSERT(self != NULL);
+    memset(self, 0, sizeof(CopyingGC));
     self->base.type = GcType_CopyingGC;
 
     // Register GC functions
@@ -133,7 +134,7 @@ static void __copying_mark_obj(Object* obj, u32* pp_obj) {
     MJC_ASSERT(pp_obj != NULL);
 
     obj->marked = TRUE;
-    MJC_LOG("copying mark %08X\n", obj);
+    MJC_LOG("copying mark %p\n", obj);
 }
 
 /**
@@ -146,7 +147,7 @@ static void __copying_fix_obj(Object* obj, u32* pp_obj) {
     MJC_ASSERT(obj != NULL);
     MJC_ASSERT(pp_obj != NULL);
 
-    MJC_LOG("copying fix %08X\n", obj);
+    MJC_LOG("copying fix %p\n", obj);
 }
 
 /**

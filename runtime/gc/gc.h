@@ -55,9 +55,10 @@ typedef struct GC {
 /**
  * @brief "Dynamic" cast from Heap to subtypes by checking the 'type' field.
  * @details Returns NULL if cast is not possible.
+ * @note GC type is only checked when compiling for debug
  */
 #define GC_DYNAMIC_CAST(gc, T)                                                 \
-    (gc != NULL && gc->type == GcType_##T ? (T*)gc : NULL)
+    (MJC_ASSERT(gc->type == GcType_##T), gc != NULL ? (T*)gc : NULL)
 
 void gc_collect(GC* gc);
 

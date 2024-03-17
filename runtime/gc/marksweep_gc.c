@@ -11,6 +11,7 @@
 #include "runtime.h"
 #include "stackframe.h"
 #include <stdlib.h>
+#include <string.h>
 
 // Forward declarations
 static void __marksweep_mark_obj(Object* obj, u32* pp_obj);
@@ -22,6 +23,7 @@ static void __marksweep_sweep(GC* gc);
 GC* marksweep_create(void) {
     MarkSweepGC* self = MJC_ALLOC_OBJ(MarkSweepGC);
     MJC_ASSERT(self != NULL);
+    memset(self, 0, sizeof(MarkSweepGC));
     self->base.type = GcType_MarkSweepGC;
 
     // Register GC functions
@@ -45,7 +47,6 @@ void marksweep_destroy(GC* gc) {
     MarkSweepGC* self = GC_DYNAMIC_CAST(gc, MarkSweepGC);
     MJC_ASSERT(self != NULL);
 
-    linklist_destroy(&self->frames);
     MJC_FREE(self);
 }
 
@@ -100,7 +101,7 @@ static void __marksweep_mark_obj(Object* obj, u32* pp_obj) {
     MJC_ASSERT(pp_obj != NULL);
 
     obj->marked = TRUE;
-    MJC_LOG("marksweep mark %08X\n", obj);
+    MJC_LOG("marksweep mark %p\n", obj);
 }
 
 /**

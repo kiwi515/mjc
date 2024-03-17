@@ -9,6 +9,7 @@
 #include "linklist.h"
 #include "heap/heap.h"
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Append new node to linked list
@@ -100,6 +101,7 @@ void linklist_append(LinkList* list, void* object) {
     // Create new list node
     node = MJC_ALLOC_OBJ(LinkNode);
     MJC_ASSERT(node != NULL);
+    memset(node, 0, sizeof(LinkNode));
 
     // Append new node
     node->object = object;
@@ -168,6 +170,8 @@ void linklist_insert(LinkList* list, LinkNode* at, void* object) {
     // Create new list node
     node = MJC_ALLOC_OBJ(LinkNode);
     MJC_ASSERT(node != NULL);
+    memset(node, 0, sizeof(LinkNode));
+
     node->object = object;
 
     // Inserting after list tail

@@ -9,6 +9,7 @@
 #include "gc/refcount_gc.h"
 #include "heap/heap.h"
 #include "runtime.h"
+#include <string.h>
 
 // Forward declarations
 static void __refcount_ref_decr_recurse(GC* gc, Object* obj);
@@ -19,6 +20,7 @@ static void __refcount_ref_decr_recurse(GC* gc, Object* obj);
 GC* refcount_create(void) {
     RefCountGC* self = MJC_ALLOC_OBJ(RefCountGC);
     MJC_ASSERT(self != NULL);
+    memset(self, 0, sizeof(RefCountGC));
     self->base.type = GcType_RefCountGC;
 
     // Register GC functions

@@ -17,7 +17,7 @@ for file in "${TEST_FILES[@]}"; do
   testName=$(basename -s .java "$file")
 
   # Build and move to top dir
-  ./compile "tests/$file" $1
+  ./compile $1 $2 "tests/$file"
   ./assemble "tests/${testName}.s"
   mv "tests/${testName}" "${testName}"
 done

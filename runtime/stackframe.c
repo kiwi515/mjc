@@ -9,6 +9,7 @@
 #include "stackframe.h"
 #include "heap/heap.h"
 #include "runtime.h"
+#include <string.h>
 
 /**
  * @brief SPARC register context
@@ -60,6 +61,8 @@ void stackframe_push(void* frame, u32 size) {
     // Allocate and fill out stack frame structure
     FrameDesc* f = MJC_ALLOC_OBJ(FrameDesc);
     MJC_ASSERT(f != NULL);
+    memset(f, 0, sizeof(FrameDesc));
+
     f->ctx = (SparcContext*)frame;
     f->size = size;
 
@@ -175,7 +178,7 @@ static void __stackframe_traverse_word(u32* p_word,
     // If this "object" exists in the heap, we found a real reference
     if (heap_is_object(curr_heap, maybe_obj)) {
         // Apply user function
-        MJC_LOG("traverse p_obj=%08X pp_obj=%08X\n", maybe_obj, p_word);
+        MJC_LOG("traverse p_obj=%p pp_obj=%p\n", maybe_obj, p_word);
         func(maybe_obj, p_word);
 
         // Look for child references in this object
