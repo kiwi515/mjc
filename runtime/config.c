@@ -12,12 +12,9 @@
  * @brief Runtime configuration
  */
 typedef struct Config {
-    // Garbage collector configuration
-    GcType gc_type;
-    // Heap configuration
-    HeapType heap_type;
-    // Heap size
-    u32 heap_size;
+    GcType gc_type;     // Garbage collector configuration
+    HeapType heap_type; // Heap configuration
+    u32 heap_size;      // Heap size
 } Config;
 
 /**

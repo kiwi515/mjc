@@ -20,20 +20,20 @@
  * @param msg
  */
 void debug_log(const char* file, int line, const char* msg, ...) {
-    static char msgbuf[512];
-    static char allbuf[1024];
+    static char msg_buf[512];
+    static char all_buf[1024];
 
     // Format message
     va_list list;
     va_start(list, msg);
-    vsnprintf(msgbuf, sizeof(msgbuf), msg, list);
+    vsnprintf(msg_buf, sizeof(msg_buf), msg, list);
     va_end(list);
 
     // Format file/line information
-    snprintf(allbuf, sizeof(allbuf), "[%s:%04d] %s", file, line, msgbuf);
+    snprintf(all_buf, sizeof(all_buf), "[%s:%04d] %s", file, line, msg_buf);
 
     // Write to stderr
-    fprintf(stderr, allbuf);
+    fprintf(stderr, all_buf);
 }
 
 /**
@@ -45,21 +45,22 @@ void debug_log(const char* file, int line, const char* msg, ...) {
  * @param ... Format string arguments (optional)
  */
 void debug_fail_assert(const char* file, int line, const char* msg, ...) {
-    static char msgbuf[512];
-    static char allbuf[1024];
+    static char msg_buf[512];
+    static char all_buf[1024];
 
     // Format message
     va_list list;
     va_start(list, msg);
-    vsnprintf(msgbuf, sizeof(msgbuf), msg, list);
+    vsnprintf(msg_buf, sizeof(msg_buf), msg, list);
     va_end(list);
 
     // Format file/line information
-    snprintf(allbuf, sizeof(allbuf),
-             "ASSERTION FAILED!\n%s\nFile: %s, line %d.\n", msgbuf, file, line);
+    snprintf(all_buf, sizeof(all_buf),
+             "ASSERTION FAILED!\n%s\nFile: %s, line %d.\n", msg_buf, file,
+             line);
 
     // Write to stderr
-    fprintf(stderr, allbuf);
+    fprintf(stderr, all_buf);
 
     // Terminate program
     exit(EXIT_FAILURE);

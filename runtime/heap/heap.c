@@ -7,6 +7,7 @@
  */
 
 #include "heap/heap.h"
+#include "config.h"
 #include "runtime.h"
 #include <stdlib.h>
 #include <string.h>
@@ -47,25 +48,37 @@ void* heap_alloc(Heap* heap, u32 size) {
     MJC_ASSERT(size > 0);
     MJC_ASSERT_MSG(heap->_alloc != NULL, "Missing alloc function");
 
+    // Align all allocations to the nearest 4 bytes
+    size = ROUND_UP(size, 4);
     // Need extra space for header
     u32 full_size = size + sizeof(Object);
+
+    // Sanity check
+    MJC_ASSERT(size % 4 == 0 && full_size % 4 == 0);
 
     // First attempt to allocate
     MJC_LOG("try alloc (size:%d)\n", full_size);
     Object* obj = heap->_alloc(heap, full_size);
 
-    if (obj == NULL) {
-        // Last attempt to allocate
+    // When using generational GC, we only collect one generation at a time.
+    // If this does not free enough memory, we proceed onto the next generation.
+    //
+    // Other GCs will free everything in one go, and halt if that doesn't work.
+    int retry_num =
+        config_get_gc_type() == GcType_GenerationalGC ? HEAP_MAX_AGE : 1;
+
+    // Keep trying to allocate memory
+    while (obj == NULL && retry_num-- > 0) {
         MJC_LOG("cant alloc %08X bytes, forcing gc cycle\n", full_size);
         runtime_collect();
         obj = heap->_alloc(heap, full_size);
+    }
 
-        // Terminate program, we are out of memory
-        if (obj == NULL) {
-            MJC_LOG("cant alloc %08X!!!\n", full_size);
-            exit(EXIT_FAILURE);
-            return NULL;
-        }
+    // Terminate program, we are out of memory
+    if (obj == NULL) {
+        MJC_LOG("cant alloc %08X!!!\n", full_size);
+        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     // Fill out object header

@@ -15,26 +15,19 @@
  * @brief SPARC register context
  */
 typedef struct SparcContext {
-    // Local registers (%l0 - %l8)
-    u32 lreg[8]; // at 0x0
-    // Input/output registers (%i0/%o0 - %i8/%o8)
-    u32 ioreg[8]; // at 0x20
-    // Space for aggregate return value
-    u32 aggregate; // at 0x40
-    // Callee register arguments
-    u32 args[6]; // at 0x44
-    // Local variables
-    u32 locals[]; // at 0x5C
+    /* 0x00 */ u32 lreg[8];   // Local registers (%l0 - %l8)
+    /* 0x20 */ u32 ioreg[8];  // Input/output registers (%i0/%o0 - %i8/%o8)
+    /* 0x40 */ u32 aggregate; // Space for aggregate return value
+    /* 0x44 */ u32 args[6];   // Callee register arguments
+    /* 0x5C */ u32 locals[];  // Local variables
 } SparcContext;
 
 /**
  * @brief Stack frame descriptor
  */
 typedef struct FrameDesc {
-    // Register context
-    SparcContext* ctx;
-    // Context size
-    u32 size;
+    SparcContext* ctx; // Register context
+    u32 size;          // Context size
 } FrameDesc;
 
 // List of active stack frames

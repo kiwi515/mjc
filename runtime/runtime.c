@@ -20,10 +20,8 @@
  * @brief Array object header
  */
 typedef struct ArrayHeader {
-    // Array length
-    u32 length; // at 0x0
-    // Array data
-    u8 data[]; // at 0x4
+    /* 0x0 */ u32 length; // Array length
+    /* 0x4 */ u8 data[];  // Array data
 } ArrayHeader;
 
 // Current heap

@@ -18,8 +18,7 @@ typedef struct Object;
  * @brief Reference counting GC
  */
 typedef struct RefCountGC {
-    // Common GC structure
-    GC base;
+    GC base; // Common GC structure
 } RefCountGC;
 
 GC* refcount_create(void);

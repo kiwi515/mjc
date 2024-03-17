@@ -10,12 +10,9 @@
 #include <string.h>
 
 typedef struct ChunkBlock {
-    // Memory owned by this block
-    u8* begin;
-    u32 size;
-
-    // Whether this block is in use
-    BOOL alloced;
+    u8* begin;    // Block start
+    u32 size;     // Block size
+    BOOL alloced; // Whether this block is in use
 } ChunkBlock;
 
 /**
@@ -105,8 +102,8 @@ Object* chunkheap_alloc(Heap* heap, u32 size) {
     size = ROUND_UP(size, 4);
 
     // Find the smallest block that can fit this allocation
-    ChunkBlock* bestBlock = NULL;
-    LinkNode* bestBlockNode = NULL;
+    ChunkBlock* best_block = NULL;
+    LinkNode* best_node = NULL;
 
     // clang-format off
     LINKLIST_FOREACH(&self->blocks, ChunkBlock*,
@@ -121,42 +118,42 @@ Object* chunkheap_alloc(Heap* heap, u32 size) {
         }
 
         // New best block found?
-        if (bestBlock == NULL || ELEM->size < bestBlock->size) {
-            bestBlock = ELEM;
-            bestBlockNode = NODE;
+        if (best_block == NULL || ELEM->size < best_block->size) {
+            best_block = ELEM;
+            best_node = NODE;
         }
     );
     // clang-format on
 
     // No available block, we need to GC
-    if (bestBlock == NULL) {
+    if (best_block == NULL) {
         return NULL;
     }
 
     // Sanity check
-    MJC_ASSERT(bestBlock->size >= size);
-    MJC_ASSERT(bestBlock->begin != NULL);
-    MJC_ASSERT(!bestBlock->alloced);
+    MJC_ASSERT(best_block->size >= size);
+    MJC_ASSERT(best_block->begin != NULL);
+    MJC_ASSERT(!best_block->alloced);
 
-    if (bestBlock->size != size) {
+    if (best_block->size != size) {
         // The block is bigger than what we need, so we need to break off a
         // piece. (This is done by creating a new block with the remaining size)
         ChunkBlock* otherPart = MJC_ALLOC_OBJ(ChunkBlock);
         MJC_ASSERT(otherPart != NULL);
         memset(otherPart, 0, sizeof(ChunkBlock));
-        otherPart->begin = bestBlock->begin + size;
-        otherPart->size = bestBlock->size - size;
+        otherPart->begin = best_block->begin + size;
+        otherPart->size = best_block->size - size;
         otherPart->alloced = FALSE;
 
         // By inserting this new node right after the one we split from, the
         // list remains sorted!
-        linklist_insert(&self->blocks, bestBlockNode, otherPart);
+        linklist_insert(&self->blocks, best_node, otherPart);
     }
 
-    bestBlock->size = size;
-    bestBlock->alloced = TRUE;
+    best_block->size = size;
+    best_block->alloced = TRUE;
 
-    return (Object*)bestBlock->begin;
+    return (Object*)best_block->begin;
 }
 
 /**

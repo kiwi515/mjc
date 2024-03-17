@@ -71,18 +71,17 @@ static void remove_impl(LinkList* list, LinkNode* node) {
  * @param list Linked list
  */
 void linklist_destroy(LinkList* list) {
-    LinkNode* iter;
-    LinkNode* next;
-
     MJC_ASSERT(list != NULL);
 
-    for (iter = list->head; iter != NULL; iter = next) {
+    for (LinkNode* iter = list->head; iter != NULL;) {
         // Get next ptr early before we break any links
-        next = iter->next;
+        LinkNode* next = iter->next;
 
         // Isolate node and free memory
         remove_impl(list, iter);
         MJC_FREE(iter);
+
+        iter = next;
     }
 }
 
@@ -93,13 +92,11 @@ void linklist_destroy(LinkList* list) {
  * @param object Object
  */
 void linklist_append(LinkList* list, void* object) {
-    LinkNode* node;
-
     MJC_ASSERT(list != NULL);
     MJC_ASSERT(object != NULL);
 
     // Create new list node
-    node = MJC_ALLOC_OBJ(LinkNode);
+    LinkNode* node = MJC_ALLOC_OBJ(LinkNode);
     MJC_ASSERT(node != NULL);
     memset(node, 0, sizeof(LinkNode));
 
@@ -116,13 +113,11 @@ void linklist_append(LinkList* list, void* object) {
  * @return Whether object was removed
  */
 BOOL linklist_remove(LinkList* list, void* object) {
-    LinkNode* iter;
-
     MJC_ASSERT(list != NULL);
     MJC_ASSERT(object != NULL);
 
     // Search for object in this list
-    for (iter = list->head; iter != NULL; iter = iter->next) {
+    for (LinkNode* iter = list->head; iter != NULL; iter = iter->next) {
         if (iter->object == object) {
             remove_impl(list, iter);
             MJC_FREE(iter);
@@ -140,15 +135,13 @@ BOOL linklist_remove(LinkList* list, void* object) {
  * @return Popped node
  */
 LinkNode* linklist_pop(LinkList* list) {
-    LinkNode* node;
-
     // Empty list
     if (list->tail == NULL) {
         return NULL;
     }
 
     // Remove tail node
-    node = list->tail;
+    LinkNode* node = list->tail;
     remove_impl(list, node);
 
     return node;
@@ -162,13 +155,11 @@ LinkNode* linklist_pop(LinkList* list) {
  * @param object Object
  */
 void linklist_insert(LinkList* list, LinkNode* at, void* object) {
-    LinkNode* node;
-
     MJC_ASSERT(list != NULL);
     MJC_ASSERT(object != NULL);
 
     // Create new list node
-    node = MJC_ALLOC_OBJ(LinkNode);
+    LinkNode* node = MJC_ALLOC_OBJ(LinkNode);
     MJC_ASSERT(node != NULL);
     memset(node, 0, sizeof(LinkNode));
 
@@ -202,13 +193,11 @@ void linklist_insert(LinkList* list, LinkNode* at, void* object) {
  * @return Whether list contains the object
  */
 BOOL linklist_contains(const LinkList* list, void* object) {
-    LinkNode* iter;
-
     MJC_ASSERT(list != NULL);
     MJC_ASSERT(object != NULL);
 
     // Search for object in this list
-    for (iter = list->head; iter != NULL; iter = iter->next) {
+    for (LinkNode* iter = list->head; iter != NULL; iter = iter->next) {
         if (iter->object == object) {
             return TRUE;
         }

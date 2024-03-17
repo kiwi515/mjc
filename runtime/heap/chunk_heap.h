@@ -24,15 +24,11 @@ typedef struct ChunkMapping {
  * @brief Memory chunk (previously "slab") backed heap
  */
 typedef struct ChunkHeap {
-    // Common heap structure
-    Heap base;
-    // Memory chunk (always contiguous)
-    u8* begin;
-    u32 size;
-    // Chunk is partitioned into blocks
-    LinkList blocks;
-    // Mappings for copies during purify
-    LinkList mappings;
+    Heap base;         // Common heap structure
+    u8* begin;         // Chunk start
+    u32 size;          // Chunk size
+    LinkList blocks;   // Block partitions
+    LinkList mappings; // Mappings for purify
 } ChunkHeap;
 
 Heap* chunkheap_create(u32 size);

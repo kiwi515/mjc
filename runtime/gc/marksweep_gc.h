@@ -16,10 +16,8 @@
  * @brief Mark-sweep GC
  */
 typedef struct MarkSweepGC {
-    // Common GC structure
-    GC base;
-    // Active stack frames
-    LinkList frames;
+    GC base;         // Common GC structure
+    LinkList frames; // Active stack frames
 } MarkSweepGC;
 
 GC* marksweep_create(void);

@@ -16,10 +16,8 @@
  * @brief Standard-library (STL) backed heap
  */
 typedef struct StlHeap {
-    // Common heap structure
-    Heap base;
-    // Free size remaining
-    u32 size;
+    Heap base; // Common heap structure
+    u32 size;  // Free size remaining
 } StlHeap;
 
 Heap* stlheap_create(u32 size);

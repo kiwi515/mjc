@@ -18,10 +18,8 @@ typedef struct Heap;
  * @brief Copying GC
  */
 typedef struct CopyingGC {
-    // Common GC structure
-    GC base;
-    // "To" heap
-    struct Heap* to_heap;
+    GC base;              // Common GC structure
+    struct Heap* to_heap; // "To" heap
 } CopyingGC;
 
 GC* copying_create(void);
