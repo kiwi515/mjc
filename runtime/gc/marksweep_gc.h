@@ -26,10 +26,7 @@ GC* marksweep_create(void);
 void marksweep_destroy(GC* gc);
 
 void marksweep_collect(GC* gc);
-void marksweep_stack_push(GC* gc, const void* frame, u32 size);
+void marksweep_stack_push(GC* gc, void* frame, u32 size);
 void marksweep_stack_pop(GC* gc);
-
-// Expose mark functionality to other GCs
-void __marksweep_mark(GC* gc);
 
 #endif

@@ -28,7 +28,7 @@ void gc_collect(GC* gc) {
  * @param frame Stack frame
  * @param size Stack frame size (before alignment)
  */
-void gc_stack_push(GC* gc, const void* frame, u32 size) {
+void gc_stack_push(GC* gc, void* frame, u32 size) {
     MJC_ASSERT(frame != NULL);
     MJC_ASSERT(size > 0);
 

@@ -11,9 +11,13 @@
 #include "gc/marksweep_gc.h"
 #include "heap/chunk_heap.h"
 #include "runtime.h"
+#include "stackframe.h"
 #include <stdlib.h>
 #include <string.h>
 
+// Forward declarations
+static void __copying_mark_obj(Object* obj, u32* pp_obj);
+static void __copying_fix_obj(Object* obj, u32* pp_obj);
 static void __copying_swap_heaps(GC* gc);
 
 /**
@@ -31,10 +35,6 @@ GC* copying_create(void) {
     self->base._stack_pop = copying_stack_pop;
     self->base._ref_incr = NULL;
     self->base._ref_decr = NULL;
-
-    // Need mark-sweep GC for marking functionality
-    self->mark_sweep = marksweep_create();
-    MJC_ASSERT(self->mark_sweep != NULL);
 
     // Prepare "to" heap
     u32 to_size = config_get_heap_size();
@@ -57,9 +57,6 @@ void copying_destroy(GC* gc) {
     MJC_ASSERT(self->to_heap != NULL);
     heap_destroy(self->to_heap);
 
-    MJC_ASSERT(self->mark_sweep != NULL);
-    marksweep_destroy(self->mark_sweep);
-
     MJC_FREE(self);
 }
 
@@ -72,10 +69,9 @@ void copying_collect(GC* gc) {
     CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
     MJC_ASSERT(self->to_heap != NULL);
-    MJC_ASSERT(self->mark_sweep != NULL);
 
     // Mark live allocations
-    __marksweep_mark(self->mark_sweep);
+    stackframe_traverse(__copying_mark_obj);
 
     // Clear the "to" heap (re-create it)
     heap_destroy(self->to_heap);
@@ -92,6 +88,9 @@ void copying_collect(GC* gc) {
     curr_heap = chunkheap_create(from_size);
     MJC_ASSERT(curr_heap != NULL);
 
+    // Fix object pointers that were changed
+    stackframe_traverse(__copying_fix_obj);
+
     // Swap handles of "from" and "to" heaps
     __copying_swap_heaps(gc);
 }
@@ -103,13 +102,12 @@ void copying_collect(GC* gc) {
  * @param frame Stack frame
  * @param size Stack frame size (before alignment)
  */
-void copying_stack_push(GC* gc, const void* frame, u32 size) {
+void copying_stack_push(GC* gc, void* frame, u32 size) {
     CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
-    MJC_ASSERT(self->mark_sweep != NULL);
+    MJC_ASSERT(frame != NULL);
 
-    // Hand-off to mark-sweep
-    marksweep_stack_push(self->mark_sweep, frame, size);
+    stackframe_push(frame, size);
 }
 
 /**
@@ -120,10 +118,35 @@ void copying_stack_push(GC* gc, const void* frame, u32 size) {
 void copying_stack_pop(GC* gc) {
     CopyingGC* self = GC_DYNAMIC_CAST(gc, CopyingGC);
     MJC_ASSERT(self != NULL);
-    MJC_ASSERT(self->mark_sweep != NULL);
 
-    // Hand-off to mark-sweep
-    marksweep_stack_pop(self->mark_sweep);
+    stackframe_pop();
+}
+
+/**
+ * @brief Mark object as reachable (stack traversal function)
+ *
+ * @param obj Heap object that was found
+ * @param pp_obj Address of the pointer to the object
+ */
+static void __copying_mark_obj(Object* obj, u32* pp_obj) {
+    MJC_ASSERT(obj != NULL);
+    MJC_ASSERT(pp_obj != NULL);
+
+    obj->marked = TRUE;
+    MJC_LOG("copying mark %08X\n", obj);
+}
+
+/**
+ * @brief Repair object pointers after copying (stack traversal function)
+ *
+ * @param obj Heap object that was found
+ * @param pp_obj Address of the pointer to the object
+ */
+static void __copying_fix_obj(Object* obj, u32* pp_obj) {
+    MJC_ASSERT(obj != NULL);
+    MJC_ASSERT(pp_obj != NULL);
+
+    MJC_LOG("copying fix %08X\n", obj);
 }
 
 /**

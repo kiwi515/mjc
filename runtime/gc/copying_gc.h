@@ -20,8 +20,6 @@ typedef struct Heap;
 typedef struct CopyingGC {
     // Common GC structure
     GC base;
-    // Built on mark-sweep GC
-    GC* mark_sweep;
     // "To" heap
     struct Heap* to_heap;
 } CopyingGC;
@@ -30,7 +28,7 @@ GC* copying_create(void);
 void copying_destroy(GC* gc);
 
 void copying_collect(GC* gc);
-void copying_stack_push(GC* gc, const void* frame, u32 size);
+void copying_stack_push(GC* gc, void* frame, u32 size);
 void copying_stack_pop(GC* gc);
 
 #endif

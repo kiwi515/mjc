@@ -36,12 +36,6 @@ void stlheap_destroy(Heap* heap) {
     StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
     MJC_ASSERT(self != NULL);
 
-    // clang-format off
-    LINKLIST_FOREACH(&self->base.objects, Object*,
-        stlheap_free(heap, ELEM);
-    );
-    // clang-format on
-
     MJC_FREE(self);
 }
 

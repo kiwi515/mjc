@@ -140,5 +140,16 @@ void heap_destroy(Heap* heap) {
     MJC_ASSERT(heap != NULL);
     MJC_ASSERT(heap->_destroy != NULL);
 
+    // Destroy heap extension
     heap->_destroy(heap);
+
+    // Release allocations
+    // clang-format off
+    LINKLIST_FOREACH(&heap->objects, Object*,
+        heap_free(heap, (Object*)ELEM);
+    )
+    // clang-format on
+
+    // Release list memory
+    linklist_destroy(&heap->objects);
 }

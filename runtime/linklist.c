@@ -33,7 +33,7 @@ static void append_impl(LinkList* list, LinkNode* node) {
 }
 
 /**
- * @brief Remove node to linked list
+ * @brief Remove node from linked list
  */
 static void remove_impl(LinkList* list, LinkNode* node) {
     MJC_ASSERT(list != NULL);
@@ -107,6 +107,31 @@ void linklist_append(LinkList* list, void* object) {
 }
 
 /**
+ * @brief Remove object from linked list
+ *
+ * @param list Linked list
+ * @param object Object
+ * @return Whether object was removed
+ */
+BOOL linklist_remove(LinkList* list, void* object) {
+    LinkNode* iter;
+
+    MJC_ASSERT(list != NULL);
+    MJC_ASSERT(object != NULL);
+
+    // Search for object in this list
+    for (iter = list->head; iter != NULL; iter = iter->next) {
+        if (iter->object == object) {
+            remove_impl(list, iter);
+            MJC_FREE(iter);
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/**
  * @brief Pop tail node from linked list
  *
  * @param list Linked list
@@ -163,30 +188,6 @@ void linklist_insert(LinkList* list, LinkNode* at, void* object) {
         at->next = node;
         node->prev = at;
     }
-}
-
-/**
- * @brief Remove object from linked list
- *
- * @param list Linked list
- * @param object Object
- * @return Whether object was removed
- */
-BOOL linklist_remove(LinkList* list, void* object) {
-    LinkNode* iter;
-
-    MJC_ASSERT(list != NULL);
-    MJC_ASSERT(object != NULL);
-
-    // Search for object in this list
-    for (iter = list->head; iter != NULL; iter = iter->next) {
-        if (iter->object == object) {
-            remove_impl(list, iter);
-            return TRUE;
-        }
-    }
-
-    return FALSE;
 }
 
 /**

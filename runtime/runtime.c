@@ -203,7 +203,7 @@ void runtime_ref_decr(void* block) {
  * @param frame Stack pointer
  * @param size Frame size (unaligned)
  */
-void runtime_stack_push(const void* frame, u32 size) {
+void runtime_stack_push(void* frame, u32 size) {
     MJC_ASSERT(__runtime_valid_gc());
     gc_stack_push(curr_gc, frame, size);
 }

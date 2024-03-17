@@ -66,7 +66,14 @@ void chunkheap_destroy(Heap* heap) {
     ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
     MJC_ASSERT(self != NULL);
 
-    // Free memory used for linked list
+    // Release block structures
+    // clang-format off
+    LINKLIST_FOREACH(&self->blocks, ChunkBlock*,
+        MJC_FREE(ELEM);
+    );
+    // clang-format on
+
+    // Release list memory
     linklist_destroy(&self->blocks);
 
     // Release memory chunk

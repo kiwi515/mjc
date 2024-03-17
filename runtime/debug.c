@@ -30,7 +30,7 @@ void debug_log(const char* file, int line, const char* msg, ...) {
     va_end(list);
 
     // Format file/line information
-    snprintf(allbuf, sizeof(allbuf), "[%s:%d] %s", file, line, msgbuf);
+    snprintf(allbuf, sizeof(allbuf), "[%s:%04d] %s", file, line, msgbuf);
 
     // Write to stderr
     fprintf(stderr, allbuf);

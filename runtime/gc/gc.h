@@ -41,7 +41,7 @@ typedef struct GC {
     void (*_collect)(struct GC* gc);
 
     // Stack frames
-    void (*_stack_push)(struct GC* gc, const void* frame, u32 size);
+    void (*_stack_push)(struct GC* gc, void* frame, u32 size);
     void (*_stack_pop)(struct GC* gc);
 
     // Reference counting
@@ -61,7 +61,7 @@ typedef struct GC {
 
 void gc_collect(GC* gc);
 
-void gc_stack_push(GC* gc, const void* frame, u32 size);
+void gc_stack_push(GC* gc, void* frame, u32 size);
 void gc_stack_pop(GC* gc);
 
 void gc_ref_incr(GC* gc, struct Object* obj);

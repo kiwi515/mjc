@@ -39,7 +39,7 @@ void runtime_ref_incr(void* block);
 void runtime_ref_decr(void* block);
 
 // Stack frame
-void runtime_stack_push(const void* frame, u32 size);
+void runtime_stack_push(void* frame, u32 size);
 void runtime_stack_pop(void);
 
 // Print
