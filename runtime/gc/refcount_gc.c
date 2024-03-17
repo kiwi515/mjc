@@ -6,7 +6,7 @@
  * Charset: US-ASCII
  */
 
-#include "gc/refcount.h"
+#include "gc/refcount_gc.h"
 #include "heap/heap.h"
 #include "runtime.h"
 

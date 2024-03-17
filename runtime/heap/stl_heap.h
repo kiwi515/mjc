@@ -24,7 +24,6 @@ Heap* stlheap_create(void);
 void stlheap_destroy(Heap* heap);
 Object* stlheap_alloc(Heap* heap, u32 size);
 void stlheap_free(Heap* heap, Object* obj);
-BOOL stlheap_is_object(const Heap* heap, const void* addr);
 void stlheap_dump(const Heap* heap);
 
 #endif

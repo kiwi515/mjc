@@ -6,8 +6,8 @@
  * Charset: US-ASCII
  */
 
-#ifndef MINI_JAVA_COMPILER_GC_REFCOUNT_H
-#define MINI_JAVA_COMPILER_GC_REFCOUNT_H
+#ifndef MINI_JAVA_COMPILER_GC_REFCOUNTGC_H
+#define MINI_JAVA_COMPILER_GC_REFCOUNTGC_H
 #include "gc/gc.h"
 #include "types.h"
 

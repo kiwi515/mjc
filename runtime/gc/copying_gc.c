@@ -6,9 +6,9 @@
  * Charset: US-ASCII
  */
 
-#include "gc/copying.h"
+#include "gc/copying_gc.h"
 #include "config.h"
-#include "gc/marksweep.h"
+#include "gc/marksweep_gc.h"
 #include "heap/chunk_heap.h"
 #include "runtime.h"
 #include <stdlib.h>

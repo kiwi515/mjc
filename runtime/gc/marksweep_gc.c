@@ -6,7 +6,7 @@
  * Charset: US-ASCII
  */
 
-#include "gc/marksweep.h"
+#include "gc/marksweep_gc.h"
 #include "heap/heap.h"
 #include "runtime.h"
 #include <stdlib.h>

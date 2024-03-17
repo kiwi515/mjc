@@ -6,8 +6,8 @@
  * Charset: US-ASCII
  */
 
-#ifndef MINI_JAVA_COMPILER_GC_COPYING_H
-#define MINI_JAVA_COMPILER_GC_COPYING_H
+#ifndef MINI_JAVA_COMPILER_GC_COPYINGGC_H
+#define MINI_JAVA_COMPILER_GC_COPYINGGC_H
 #include "gc/gc.h"
 #include "types.h"
 

@@ -8,10 +8,10 @@
 
 #include "runtime.h"
 #include "config.h"
-#include "gc/copying.h"
+#include "gc/copying_gc.h"
 #include "gc/gc.h"
-#include "gc/marksweep.h"
-#include "gc/refcount.h"
+#include "gc/marksweep_gc.h"
+#include "gc/refcount_gc.h"
 #include "heap/chunk_heap.h"
 #include "heap/stl_heap.h"
 

@@ -34,7 +34,6 @@ Heap* chunkheap_create(u32 size) {
     self->base._destroy = chunkheap_destroy;
     self->base._alloc = chunkheap_alloc;
     self->base._free = chunkheap_free;
-    self->base._is_object = chunkheap_is_object;
     self->base._dump = chunkheap_dump;
 
     // Underlying memory
@@ -189,31 +188,6 @@ void chunkheap_free(Heap* heap, Object* obj) {
     parent->alloced = FALSE;
 
     // TODO: Coalesce free blocks (not really needed for this project)
-}
-
-/**
- * @brief Check whether an address is an object
- *
- * @param heap Chunk heap
- * @param addr Address
- */
-BOOL chunkheap_is_object(const Heap* heap, const void* addr) {
-    const ChunkHeap* self = HEAP_DYNAMIC_CAST(heap, ChunkHeap);
-    MJC_ASSERT(self != NULL);
-
-    if (addr == NULL) {
-        return FALSE;
-    }
-
-    // clang-format off
-    LINKLIST_FOREACH(&self->blocks, const ChunkBlock*,
-        if ((u8*)addr == ELEM->begin) {
-            return TRUE;
-        }
-    )
-    // clang-format on
-
-    return FALSE;
 }
 
 /**

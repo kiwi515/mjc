@@ -21,7 +21,6 @@ Heap* stlheap_create(void) {
     self->base._destroy = stlheap_destroy;
     self->base._alloc = stlheap_alloc;
     self->base._free = stlheap_free;
-    self->base._is_object = stlheap_is_object;
     self->base._dump = stlheap_dump;
 
     // Handle to basic heap
@@ -78,31 +77,6 @@ void stlheap_free(Heap* heap, Object* obj) {
 
     // STL provides malloc/free
     MJC_FREE(obj);
-}
-
-/**
- * @brief Check whether an address is an object
- *
- * @param heap STL heap
- * @param addr Address
- */
-BOOL stlheap_is_object(const Heap* heap, const void* addr) {
-    const StlHeap* self = HEAP_DYNAMIC_CAST(heap, StlHeap);
-    MJC_ASSERT(self != NULL);
-
-    if (addr == NULL) {
-        return FALSE;
-    }
-
-    // clang-format off
-    LINKLIST_FOREACH(&self->base.objects, const Object*,
-        if ((u8*)addr == (u8*)ELEM) {
-            return TRUE;
-        }
-    );
-    // clang-format on
-
-    return FALSE;
 }
 
 /**

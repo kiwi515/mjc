@@ -103,9 +103,20 @@ void heap_free(Heap* heap, Object* obj) {
  */
 BOOL heap_is_object(const Heap* heap, const void* addr) {
     MJC_ASSERT(heap != NULL);
-    MJC_ASSERT(heap->_is_object != NULL);
 
-    return heap->_is_object(heap, addr);
+    if (addr == NULL) {
+        return FALSE;
+    }
+
+    // clang-format off
+    LINKLIST_FOREACH(&heap->objects, const Object*,
+        if ((u8*)addr == (u8*)ELEM) {
+            return TRUE;
+        }
+    );
+    // clang-format on
+
+    return FALSE;
 }
 
 /**

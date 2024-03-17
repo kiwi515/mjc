@@ -54,8 +54,6 @@ typedef struct Heap {
     Object* (*_alloc)(struct Heap* heap, u32 size);
     // Free object to this heap
     void (*_free)(struct Heap* heap, Object* obj);
-    // Check whether an address is an object
-    BOOL (*_is_object)(const struct Heap* heap, const void* addr);
     // Dump contents of this heap
     void (*_dump)(const struct Heap* heap);
     // Destroy this heap

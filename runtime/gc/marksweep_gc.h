@@ -6,8 +6,8 @@
  * Charset: US-ASCII
  */
 
-#ifndef MINI_JAVA_COMPILER_GC_MARKSWEEP_H
-#define MINI_JAVA_COMPILER_GC_MARKSWEEP_H
+#ifndef MINI_JAVA_COMPILER_GC_MARKSWEEPGC_H
+#define MINI_JAVA_COMPILER_GC_MARKSWEEPGC_H
 #include "gc/gc.h"
 #include "linklist.h"
 #include "types.h"

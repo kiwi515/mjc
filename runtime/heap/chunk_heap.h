@@ -29,7 +29,6 @@ Heap* chunkheap_create(u32 size);
 void chunkheap_destroy(Heap* heap);
 Object* chunkheap_alloc(Heap* heap, u32 size);
 void chunkheap_free(Heap* heap, Object* block);
-BOOL chunkheap_is_object(const Heap* heap, const void* addr);
 void chunkheap_dump(const Heap* heap);
 
 void chunkheap_purify(Heap* src, Heap* dst);
