@@ -58,7 +58,7 @@ void generational_destroy(GC* gc) {
 }
 
 /**
- * @brief Perform a mark-sweep GC cycle
+ * @brief Perform a generational GC cycle
  *
  * @param gc Generational GC
  */
