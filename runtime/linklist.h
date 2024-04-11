@@ -23,8 +23,6 @@ typedef struct LinkNode {
     void* object;
 } LinkNode;
 
-typedef void (*LinkListForEachFunc)(void* object);
-
 void linklist_destroy(LinkList* list);
 
 void linklist_append(LinkList* list, void* object);
