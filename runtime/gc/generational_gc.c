@@ -67,14 +67,14 @@ void generational_collect(GC* gc) {
     MJC_ASSERT(self != NULL);
     MJC_ASSERT(self->gen_one != NULL);
 
-    // Mark garbage in generation zero
-    stackframe_traverse(__generational_mark_obj, NULL);
-
     // Live objects move up to next generation
+    stackframe_traverse(__generational_mark_obj, NULL);
     BOOL success = chunkheap_purify(curr_heap, self->gen_one);
-    // If copying worked, just clear generation zero!
+
+    // If copying worked, everything in gen zero is garbage
     if (success) {
-        __generational_sweep(gc);
+        heap_destroy(curr_heap);
+        curr_heap = chunkheap_create(config_get_heap_size());
         return;
     }
 
