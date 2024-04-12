@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# no gc
+# program that fills up memory
+./compile --gc=None "tests/MemoryGeneratorTest.java"
+./assemble "tests/MemoryGeneratorTest.s"
+mv "tests/MemoryGeneratorTest" "MemoryGeneratorTestNone"
+# rc works
+# program that fills up memory
+./compile --gc=RefCount "tests/MemoryGeneratorTest.java"
+./assemble "tests/MemoryGeneratorTest.s"
+mv "tests/MemoryGeneratorTest" "MemoryGeneratorTestRefCount"
+# rc cyclical
+# cyclicgarbagetest
+./compile --gc=RefCount "tests/CyclicGarbageTest.java"
+./assemble "tests/CyclicGarbageTest.s"
+mv "tests/CyclicGarbageTest" "CyclicGarbageTestRefCount"
+# marksweep works
+# cyclicgarbagetest
+./compile --gc=MarkSweep "tests/CyclicGarbageTest.java"
+./assemble "tests/CyclicGarbageTest.s"
+mv "tests/CyclicGarbageTest" "CyclicGarbageTestMarkSweep"
+# marksweep fragmented
+# fragmentedtest
+./compile --gc=MarkSweep "tests/FragmentedHeapTest.java"
+./assemble "tests/FragmentedHeapTest.s"
+mv "tests/FragmentedHeapTest" "FragmentedHeapTestMarkSweep"
+# copying works
+# fragmentedtest
+./compile --gc=Copying --heap=Chunk "tests/FragmentedHeapTest.java"
+./assemble "tests/FragmentedHeapTest.s"
+mv "tests/FragmentedHeapTest" "FragmentedHeapTestCopying"
+# copying works poorly with lots of new objects
+# newoldtest
+./compile --gc=Generational --heap=Chunk "tests/NewOldTest.java"
+./assemble "tests/NewOldTest.s"
+mv "tests/NewOldTest" "NewOldTestCopying"
